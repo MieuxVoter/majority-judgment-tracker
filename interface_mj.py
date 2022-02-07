@@ -12,8 +12,7 @@ def sort_candidates_mj(
     nb_grades: int,
 ):
     """
-    Convert a list of votes into a matrix containing the number of grades for
-    each candidate
+    Reindexing candidates in the dataFrame following mj rules
 
     Parameters
     ----------
