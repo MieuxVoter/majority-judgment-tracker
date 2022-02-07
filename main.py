@@ -42,6 +42,7 @@ def main():
             auto_text=False,
             filename=survey,
             export_html=True,
+            export_png=True,
             show=True,
             source=source,
             date=date,

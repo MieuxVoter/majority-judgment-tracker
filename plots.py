@@ -12,6 +12,7 @@ def plot_merit_profiles(
     font_size: int = 20,
     show: bool = True,
     export_html: bool = False,
+    export_png: bool = True,
     filename: str = None,
     date: str = None,
     sponsor: str = None,
@@ -28,7 +29,8 @@ def plot_merit_profiles(
         orientation="h",
         text_auto=auto_text,
         color_discrete_map=color_dict,
-        # width=2000
+        width=1000,
+        height=600,
     )
 
     fig.update_traces(textfont_size=font_size, textangle=0, textposition="auto", cliponaxis=False, width=0.5)
@@ -113,3 +115,5 @@ def plot_merit_profiles(
         fig.show()
     if export_html:
         fig.write_html(f"figs/{filename}.html")
+    if export_png:
+        fig.write_image(f"figs/{filename}.png")
