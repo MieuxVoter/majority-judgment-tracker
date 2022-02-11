@@ -1,9 +1,8 @@
-from libs import majority_judgment as mj
+from libs.majority_judgment_2 import majority_judgment as mj
 import pandas as pd
 from pandas import DataFrame
 from utils import (
     get_intentions,
-    get_intentions_colheaders,
 )
 
 
@@ -12,7 +11,7 @@ def sort_candidates_mj(
     nb_grades: int,
 ):
     """
-    Reindexing candidates in the dataFrame following mj rules
+    Reindexing candidates in the dataFrame following majority judgment rules
 
     Parameters
     ----------
@@ -28,28 +27,27 @@ def sort_candidates_mj(
 
     df_intentions = get_intentions(df, nb_grades)
 
-    col = get_intentions_colheaders(df, nb_grades)
+    merit_profiles_dict = set_dictionary(df_intentions, nb_grades, nb_candidates)
+    ranking = mj(merit_profiles_dict, reverse=True)
 
-    # only intentions of votes in the dataframe
-    intentions = df[col]
-    merit_profiles = generate_merit_profiles(intentions, nb_grades, nb_candidates)
-
-    # generate data for the use of mj
-    majo_vals = [mj.MajorityValue(profil) for profil in merit_profiles]
-    sorted_majo_vals = mj.sort_by_value_with_index(majo_vals)
-
-    # get back index of ranks for each candidates
-    rank_idx = [idx for idx, value in sorted_majo_vals]
-
+    # copy and empty the panda datafram to refill it.
+    new_df = df_intentions.copy()
+    new_df = new_df.drop(
+        labels=new_df.index, axis=0, index=None, columns=None, level=None, inplace=True, errors="raise"
+    )
+    # refilling the dataframe
+    for key in ranking:
+        row = df_intentions[df_intentions["candidat"] == key]
+        new_df = pd.concat([new_df, row], ignore_index=True)
     # set new index of rows
-    df_intentions.index = pd.Index(data=rank_idx, dtype="int64")
+    new_df.index = pd.Index(data=[i for i in range(1, nb_candidates + 1)], dtype="int64")
 
-    return df_intentions.sort_index(axis=0, ascending=True)
+    return new_df.reindex(index=new_df.index[::-1])  # sort to plot it the right way, best candidate at the top.
 
 
-def generate_merit_profiles(df_intentions: DataFrame, nb_grades: int, nb_candidates: int):
+def set_dictionary(df_intentions: DataFrame, nb_grades: int, nb_candidates: int):
     """
-    Convert a list of votes into a matrix containing the number of grades for
+    Convert a DataFrame of votes into a dictionary Dict[str, list] containing the number of grades for
     each candidate
 
     Parameters
@@ -62,7 +60,10 @@ def generate_merit_profiles(df_intentions: DataFrame, nb_grades: int, nb_candida
         number of candidates
     Returns
     -------
-    A list of dictionaries which contains the number of votes for each grade for each candidates,
-    the length of the list is the number of candidates
+    a dictionary Dict[str, list] containing the number of grades for
+    each candidate
     """
-    return [{j: df_intentions.iloc[i, j] for j in range(nb_grades)} for i in range(nb_candidates)]
+    return {
+        df_intentions["candidat"].iloc[i]: [df_intentions.iloc[i, j + 1] for j in range(nb_grades)]
+        for i in range(nb_candidates)
+    }

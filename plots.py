@@ -89,10 +89,7 @@ def plot_merit_profiles(
         sponsor_str = f"commanditaire: {sponsor}"
     title = "<b>Evaluation au jugement majoritaire</b> <br>" + f"<i>{date_str}{source_str}{sponsor_str}</i>"
 
-    fig.update_layout(
-        title=title,
-        title_x=0.5
-    )
+    fig.update_layout(title=title, title_x=0.5)
 
     # font family
     fig.update_layout(font_family="arial")
