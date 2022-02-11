@@ -30,7 +30,7 @@ def main():
         nb_grades = df_survey["nombre_mentions"].unique()[0]
         grades = get_grades(df_survey, nb_grades)
         first_idx = df_survey.first_valid_index()
-        source = df_survey['nom_institut'].loc[first_idx]
+        source = df_survey["nom_institut"].loc[first_idx]
         sponsor = df_survey["commanditaire"].loc[first_idx]
         date = df_survey["fin_enquete"].loc[first_idx]
 

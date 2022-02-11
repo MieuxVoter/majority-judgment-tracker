@@ -73,10 +73,7 @@ def best_grade(l: List):
             return i
 
 
-def fmajorit(index_median: Dict[str, int],
-             nbvot: int,
-             candidate: str,
-             grades: List[int]):
+def fmajorit(index_median: Dict[str, int], nbvot: int, candidate: str, grades: List[int]):
     """
     Rank each candidate according to
     # https://fr.wikipedia.org/wiki/M%C3%A9thode_de_meilleure_m%C3%A9diane#cite_note-Fabre20-3
@@ -106,7 +103,7 @@ def fmajorit(index_median: Dict[str, int],
     """
     i = index_median[candidate]
     q = sum(grades[:i]) / nbvot
-    p = sum(grades[i + 1:]) / nbvot
+    p = sum(grades[i + 1 :]) / nbvot
     b = p > q
     m = i
     if b:
@@ -116,6 +113,6 @@ def fmajorit(index_median: Dict[str, int],
         d = -q
         i2 = i - 1
     m += d
-    e = min(nbvot / 2 + 1 - sum(grades[:i]), sum(grades[:(i + 1)]) - (nbvot / 2))
+    e = min(nbvot / 2 + 1 - sum(grades[:i]), sum(grades[: (i + 1)]) - (nbvot / 2))
     e = int(e * 2)
     return [i, m, p, q, b, d, e, i2]

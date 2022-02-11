@@ -47,14 +47,19 @@ def sort_candidates_mj(
     merit_profiles_dict = set_dictionary(df_intentions, nb_grades, nb_candidates)
     ranking = mj(merit_profiles_dict, reverse=True)
 
-    new_df = pd.DataFrame(columns=df_intentions.columns)
+    # copy and empy the panda datafram to refill it.
+    new_df = df_intentions.copy()
+    new_df = new_df.drop(
+        labels=new_df.index, axis=0, index=None, columns=None, level=None, inplace=True, errors="raise"
+    )
+    # refilling the dataframe
     for key in ranking:
         row = df_intentions[df_intentions["candidat"] == key]
         new_df = pd.concat([new_df, row], ignore_index=True)
     # set new index of rows
-    new_df.index = pd.Index(data=[i for i in range(1, nb_candidates+1)], dtype="int64")
+    new_df.index = pd.Index(data=[i for i in range(1, nb_candidates + 1)], dtype="int64")
 
-    return df_intentions.reindex(index=df_intentions.index[::-1])
+    return new_df.reindex(index=new_df.index[::-1])  # sort to plot it the right way, best candidate at the top.
 
 
 def set_merit_profiles(df_intentions: DataFrame, nb_grades: int, nb_candidates: int):
@@ -96,7 +101,10 @@ def set_merit_profiles2(df_intentions: DataFrame, nb_grades: int, nb_candidates:
     A list of dictionaries which contains the number of votes for each grade for each candidates,
     the length of the list is the number of candidates
     """
-    return [{j: df_intentions.iloc[i, nb_grades-j-1] for j in range(nb_grades-1, -1, -1)} for i in range(nb_candidates)]
+    return [
+        {j: df_intentions.iloc[i, nb_grades - j - 1] for j in range(nb_grades - 1, -1, -1)}
+        for i in range(nb_candidates)
+    ]
 
 
 def set_dictionary(df_intentions: DataFrame, nb_grades: int, nb_candidates: int):
@@ -117,4 +125,7 @@ def set_dictionary(df_intentions: DataFrame, nb_grades: int, nb_candidates: int)
     A list of dictionaries which contains the number of votes for each grade for each candidates,
     the length of the list is the number of candidates
     """
-    return {df_intentions["candidat"].iloc[i]: [df_intentions.iloc[i, j+1] for j in range(nb_grades)] for i in range(nb_candidates)}
+    return {
+        df_intentions["candidat"].iloc[i]: [df_intentions.iloc[i, j + 1] for j in range(nb_grades)]
+        for i in range(nb_candidates)
+    }
