@@ -1,0 +1,62 @@
+---
+name: Releases
+
+on:
+  push:
+    tags: '*'
+
+jobs:
+  build:
+    name: "Build HTML and PNG images"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Clone repository"
+        uses: "actions/checkout@v2"
+      - name: "Install python"
+        uses: "actions/setup-python@v2"
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - name: "Install dependencies"
+        run: |
+          python -VV
+          python -m site
+          python -m pip install --upgrade pip setuptools wheel poetry
+          python -m pip install --upgrade coverage[toml] virtualenv tox tox-gh-actions          
+          poetry install
+      - name: Generate build
+        run: poetry run python main.py --html --png
+      # Share artifact inside workflow
+      - name: Share artifact inside workflow
+        uses: actions/upload-artifact@v2
+        with:
+          name: plugin-build
+          path: figs
+            
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      # Download previously shared build
+      - name: Get artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: plugin-build
+      # Zip the build using external action
+      - name: Zip build
+        uses: thedoctor0/zip-release@master
+        with:
+          filename: majority-judgment-tracker.zip
+          path: plugin-build
+      # Upload as an artifact of the current workflow
+      - name: Upload build zip artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: majority-judgment-tracker.zip
+          path: majority-judgment-tracker.zip
+      # Make official GitHub release which will trigger
+      # sending the mail with link for access
+      - name: Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: majority-judgment-tracker.zip
+          token: ${{ secrets.GITHUB_TOKEN }}

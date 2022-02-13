@@ -1,8 +1,9 @@
+from pathlib import Path
+from typing import List
 import plotly.express as px
 from seaborn import color_palette
-from utils import get_intentions_colheaders
 from pandas import DataFrame
-from typing import List
+from utils import get_intentions_colheaders
 
 
 def plot_merit_profiles(
@@ -10,10 +11,6 @@ def plot_merit_profiles(
     grades: List,
     auto_text: bool = True,
     font_size: int = 20,
-    show: bool = True,
-    export_html: bool = False,
-    export_png: bool = True,
-    filename: str = None,
     date: str = None,
     sponsor: str = None,
     source: str = None,
@@ -108,9 +105,4 @@ def plot_merit_profiles(
         )
     )
 
-    if show:
-        fig.show()
-    if export_html:
-        fig.write_html(f"figs/{filename}.html")
-    if export_png:
-        fig.write_image(f"figs/{filename}.png")
+    return fig
