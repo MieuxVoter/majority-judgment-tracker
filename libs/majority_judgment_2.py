@@ -18,7 +18,7 @@ import os
 from typing import Dict, List
 
 
-def majority_judgment(data: Dict[str, List[int]] = None, reverse: bool = False):
+def majority_judgment(ref_id: str, data: Dict[str, List[float]] = None, reverse: bool = False):
     """
     apply majority judgment
 
@@ -35,10 +35,10 @@ def majority_judgment(data: Dict[str, List[int]] = None, reverse: bool = False):
     """
     if reverse:
         data = {x: l[::-1] for x, l in data.items()}
-    snbvot = {sum(x) for x in data.values()}
+    snbvot = {round(sum(x),2) for x in data.values()}
     total_votes = list(snbvot)[0]
     if not len(snbvot) == 1:
-        raise ValueError("note the same number of vote for each candidate")
+        raise ValueError("note the same number of vote for each candidate in " + ref_id + " - " + str(data))
 
     cumulative_sum = {x: np.cumsum(y) / total_votes for x, y in data.items()}
 

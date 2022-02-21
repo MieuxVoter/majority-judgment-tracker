@@ -7,6 +7,7 @@ from utils import (
 
 
 def sort_candidates_mj(
+    id_ref: str,
     df: DataFrame,
     nb_grades: int,
 ):
@@ -15,6 +16,8 @@ def sort_candidates_mj(
 
     Parameters
     ----------
+    id_ref: str
+        indicates on wich survey we are exploring
     df: DataFrame
         contains all the data of vote / survey
     nb_grades: int
@@ -28,7 +31,7 @@ def sort_candidates_mj(
     df_intentions = get_intentions(df, nb_grades)
 
     merit_profiles_dict = set_dictionary(df_intentions, nb_grades, nb_candidates)
-    ranking = mj(merit_profiles_dict, reverse=True)
+    ranking = mj(id_ref, merit_profiles_dict, reverse=True)
 
     # copy and empty the panda datafram to refill it.
     new_df = df_intentions.copy()

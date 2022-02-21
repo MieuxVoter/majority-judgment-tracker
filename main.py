@@ -8,6 +8,7 @@ from utils import (
     get_grades,
 )
 from interface_mj import sort_candidates_mj
+from libs.normalize import normalize_file
 
 # todo: handle sans opinion if case
 # todo: graphique classement en fonction des dates (avec mediane glissante)
@@ -26,7 +27,8 @@ class Arguments(tap.Tap):
 def main(args: Arguments):
     args.dest.mkdir(exist_ok=True)
 
-    df = pd.read_csv(args.csv)
+    df=normalize_file(args.csv)
+    
     surveys = get_list_survey(df)
 
     for survey in surveys:
@@ -40,7 +42,7 @@ def main(args: Arguments):
         sponsor = df_survey["commanditaire"].loc[first_idx]
         date = df_survey["fin_enquete"].loc[first_idx]
 
-        df_sorted = sort_candidates_mj(df_survey, nb_grades)
+        df_sorted = sort_candidates_mj(survey, df_survey, nb_grades)
 
         fig = plot_merit_profiles(
             df=df_sorted,
