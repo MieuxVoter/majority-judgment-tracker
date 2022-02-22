@@ -35,7 +35,7 @@ def majority_judgment(ref_id: str, data: Dict[str, List[float]] = None, reverse:
     """
     if reverse:
         data = {x: l[::-1] for x, l in data.items()}
-    snbvot = {round(sum(x),2) for x in data.values()}
+    snbvot = {round(sum(x), 2) for x in data.values()}
     total_votes = list(snbvot)[0]
     if not len(snbvot) == 1:
         raise ValueError("note the same number of vote for each candidate in " + ref_id + " - " + str(data))
@@ -48,7 +48,7 @@ def majority_judgment(ref_id: str, data: Dict[str, List[float]] = None, reverse:
     best_grade_mm = sorted(median_grades.values())[-1]
 
     majority = {x: fmajorit(median_grades, total_votes, x, r) for x, r in data.items()}
-    bests = sorted(majority.items(), key=lambda x: x[1][1])[::-1]
+    bests = sorted(majority.items(), key=lambda x: x[1][8])[::-1]
 
     # as written by Fabre in fact it is just necessary to compare the modified note
     ranking = {x[0]: i + 1 for i, x in enumerate(bests)}
@@ -115,4 +115,31 @@ def fmajorit(index_median: Dict[str, int], nbvot: int, candidate: str, grades: L
     m += d
     e = min(nbvot / 2 + 1 - sum(grades[:i]), sum(grades[: (i + 1)]) - (nbvot / 2))
     e = int(e * 2)
-    return [i, m, p, q, b, d, e, i2]
+
+    """ rank using the method writen in the 'La recherche' from 2012 and add some elements to the precedent method
+        score is a ranking going from 10 to 91 (in the case of 7 mentions)
+    """
+    prc = list(grades)
+
+    for nb, val in enumerate(prc):
+        prc[nb] = 100 * val / nbvot
+
+    sum1 = 0
+    sum2 = 0
+    bonus = 0
+    for nb, val in enumerate(prc):
+        if nb < i:
+            sum1 += val
+        elif nb > i:
+            sum2 += val
+    if sum1 == sum2:
+        bonus = 1
+    elif sum1 < sum2:
+        bonus = 2
+    if bonus == 2:
+        ballotage = sum2 / 100
+    else:
+        ballotage = (100 - sum1) / 100
+    score = (i + 1) * 10 + bonus + ballotage
+
+    return [i, m, p, q, b, d, e, i2, score]

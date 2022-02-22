@@ -1,15 +1,11 @@
 from libs.majority_judgment_2 import majority_judgment as mj
 import pandas as pd
 from pandas import DataFrame
-from utils import (
-    get_intentions,
-)
+from utils import get_intentions
 
 
 def sort_candidates_mj(
-    id_ref: str,
-    df: DataFrame,
-    nb_grades: int,
+    id_ref: str, df: DataFrame, nb_grades: int,
 ):
     """
     Reindexing candidates in the dataFrame following majority judgment rules

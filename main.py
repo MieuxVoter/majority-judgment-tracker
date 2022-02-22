@@ -27,8 +27,8 @@ class Arguments(tap.Tap):
 def main(args: Arguments):
     args.dest.mkdir(exist_ok=True)
 
-    df=normalize_file(args.csv)
-    
+    df = normalize_file(args.csv)
+
     surveys = get_list_survey(df)
 
     for survey in surveys:
@@ -45,12 +45,7 @@ def main(args: Arguments):
         df_sorted = sort_candidates_mj(survey, df_survey, nb_grades)
 
         fig = plot_merit_profiles(
-            df=df_sorted,
-            grades=grades,
-            auto_text=False,
-            source=source,
-            date=date,
-            sponsor=sponsor,
+            df=df_sorted, grades=grades, auto_text=False, source=source, date=date, sponsor=sponsor,
         )
 
         if args.show:

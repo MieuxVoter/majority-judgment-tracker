@@ -9,38 +9,42 @@ import pandas as pd
 import sqlite3
 import os
 
-def normalize_file(file: str, sans_op_mode: str = 'Insuffisant', aggregat: bool = False, aggregate_method: str = 'unkown yet'):
-#    pd.set_option('display.max_rows', 20)
-#    pd.set_option('display.max_columns', 100)
-#    pd.set_option('display.width', 10000)
-#    pd.set_option('display.max_colwidth', 10)
+
+def normalize_file(
+    file: str, sans_op_mode: str = "Insuffisant", aggregat: bool = False, aggregate_method: str = "unkown yet"
+):
+    #    pd.set_option('display.max_rows', 20)
+    #    pd.set_option('display.max_columns', 100)
+    #    pd.set_option('display.width', 10000)
+    #    pd.set_option('display.max_colwidth', 10)
     try:
-        os.remove("jmajo.sqlite") 
+        os.remove("jmajo.sqlite")
     except OSError as error:
         print("sqlite file was not existing")
     con = sqlite3.connect("jmajo.sqlite")
-#    con.set_trace_callback(print)
+    #    con.set_trace_callback(print)
     sql = con.cursor()
 
-#parametres de données
-#    sans_op_mode='Insuffisant'
-#    sans_op_mode='Insuffisant B'
-#    sans_op_mode='Passable'
-#    sans_op_mode='Passable B'
-#    sans_op_mode='Assez bien'
-#    sans_op_mode='Assez bien B'
+    # parametres de données
+    #    sans_op_mode='Insuffisant'
+    #    sans_op_mode='Insuffisant B'
+    #    sans_op_mode='Passable'
+    #    sans_op_mode='Passable B'
+    #    sans_op_mode='Assez bien'
+    #    sans_op_mode='Assez bien B'
 
-#    aggregat=False
-#    agrregat_mode="todo"
-    
-#normalisation de la base
+    #    aggregat=False
+    #    agrregat_mode="todo"
 
-    df = pd.read_csv(file,na_filter=False)
-    df.to_sql("sondages", con, if_exists='append', index=False)
-    df = pd.read_csv("standardisation.csv",na_filter=False)
-    df.to_sql("standardisation", con, if_exists='append', index=False)
- 
-    sql.execute("""
+    # normalisation de la base
+
+    df = pd.read_csv(file, na_filter=False)
+    df.to_sql("sondages", con, if_exists="append", index=False)
+    df = pd.read_csv("standardisation.csv", na_filter=False)
+    df.to_sql("standardisation", con, if_exists="append", index=False)
+
+    sql.execute(
+        """
                 create table sondages_standard(
                     candidat	,
                     parti,
@@ -69,9 +73,11 @@ def normalize_file(file: str, sans_op_mode: str = 'Insuffisant', aggregat: bool 
                     population,
                     hypothese
                 )
-                """)
+                """
+    )
 
-    sql.execute("""
+    sql.execute(
+        """
                 create table sondages_aggrege(
                     candidat	,
                     parti,
@@ -100,9 +106,11 @@ def normalize_file(file: str, sans_op_mode: str = 'Insuffisant', aggregat: bool 
                     population,
                     hypothese
                 )
-                """)
-    
-    sql_query = pd.read_sql_query ("""
+                """
+    )
+
+    sql_query = pd.read_sql_query(
+        """
                                    SELECT
                                    mention_1,
                                    mention_2,
@@ -120,11 +128,14 @@ def normalize_file(file: str, sans_op_mode: str = 'Insuffisant', aggregat: bool 
                                    mention_7_out
                                    FROM standardisation
                                    where sans_op_mode='%s'
-                                   """%sans_op_mode, con)
-    
+                                   """
+        % sans_op_mode,
+        con,
+    )
+
     df = pd.DataFrame(sql_query)
     for row in df.itertuples():
-        sql_str="""
+        sql_str = """
                 insert into sondages_standard(
                         candidat,
                         parti,
@@ -189,27 +200,33 @@ def normalize_file(file: str, sans_op_mode: str = 'Insuffisant', aggregat: bool 
                          and so.mention_6=? 
                          and so.mention_7=?
                     """
-        sql.execute(sql_str%(row.mention_1_out,
-                             row.mention_2_out,
-                             row.mention_3_out,
-                             row.mention_4_out,
-                             row.mention_5_out,
-                             row.mention_6_out,
-                             row.mention_7_out)
-                            ,(str(row.mention_1 or ''),
-                             str(row.mention_2 or ''),
-                             str(row.mention_3 or ''),
-                             str(row.mention_4 or ''),
-                             str(row.mention_5 or ''),
-                             str(row.mention_6 or ''),
-                             str(row.mention_7 or '')
-                             ))
+        sql.execute(
+            sql_str
+            % (
+                row.mention_1_out,
+                row.mention_2_out,
+                row.mention_3_out,
+                row.mention_4_out,
+                row.mention_5_out,
+                row.mention_6_out,
+                row.mention_7_out,
+            ),
+            (
+                str(row.mention_1 or ""),
+                str(row.mention_2 or ""),
+                str(row.mention_3 or ""),
+                str(row.mention_4 or ""),
+                str(row.mention_5 or ""),
+                str(row.mention_6 or ""),
+                str(row.mention_7 or ""),
+            ),
+        )
         con.commit()
-        
+
     if aggregat:
-#todo les aggregats, en vérifiant quels sondages sont compatibles rapport nombre de candidats (restreindre à la portion de candidats communs dans les sondages ?)
-#note, on perd des éléments en passant en aggrégat
-        sql_str="""
+        # todo les aggregats, en vérifiant quels sondages sont compatibles rapport nombre de candidats (restreindre à la portion de candidats communs dans les sondages ?)
+        # note, on perd des éléments en passant en aggrégat
+        sql_str = """
                 insert into sondages_aggrege(
                         candidat,
                         parti,
@@ -268,7 +285,7 @@ def normalize_file(file: str, sans_op_mode: str = 'Insuffisant', aggregat: bool 
                 from sondages_standard
                 """
     else:
-        sql_str="""
+        sql_str = """
                 insert into sondages_aggrege(
                         candidat,
                         parti,
@@ -329,11 +346,11 @@ def normalize_file(file: str, sans_op_mode: str = 'Insuffisant', aggregat: bool 
 
     sql.execute(sql_str)
     con.commit()
-    #to avoid rounding issues on some conversion to standard 7 mentions while working in percentage.
+    # to avoid rounding issues on some conversion to standard 7 mentions while working in percentage.
     sql_str = "update sondages_aggrege set intention_mention_4=round(100.0-intention_mention_1-intention_mention_2-intention_mention_3-intention_mention_5-intention_mention_6-intention_mention_7,2)"
     sql.execute(sql_str)
     con.commit()
-    sql_query = pd.read_sql_query ('select * from sondages_aggrege', con)
+    sql_query = pd.read_sql_query("select * from sondages_aggrege", con)
     df = pd.DataFrame(sql_query)
     con.close()
     return df
