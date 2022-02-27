@@ -15,19 +15,19 @@ from matplotlib.lines import Line2D
 import matplotlib.patches as patches
 import os
 
-from typing import Dict, List
+from typing import Dict, List, Union
 
 
-def majority_judgment(ref_id: str, data: Dict[str, List[float]] = None, reverse: bool = False):
+def majority_judgment(data: Dict[str, List[Union[int, float]]] = None, reverse: bool = False):
     """
     apply majority judgment
 
     Parameters
     ----------
-    data: Dict[str, List]
+    data: Dict[str, List[Union[int, float]]
         Results of the votes
         str correspond to the names of candidates, List of int is the number for each grades
-    reverse bool
+    reverse: bool
         if you want to flip the grades order
     Returns
     -------
@@ -38,7 +38,7 @@ def majority_judgment(ref_id: str, data: Dict[str, List[float]] = None, reverse:
     snbvot = {round(sum(x), 2) for x in data.values()}
     total_votes = list(snbvot)[0]
     if not len(snbvot) == 1:
-        raise ValueError("note the same number of vote for each candidate in " + ref_id + " - " + str(data))
+        raise ValueError("note the same number of vote for each candidate")
 
     cumulative_sum = {x: np.cumsum(y) / total_votes for x, y in data.items()}
 
@@ -48,7 +48,7 @@ def majority_judgment(ref_id: str, data: Dict[str, List[float]] = None, reverse:
     best_grade_mm = sorted(median_grades.values())[-1]
 
     majority = {x: fmajorit(median_grades, total_votes, x, r) for x, r in data.items()}
-    bests = sorted(majority.items(), key=lambda x: x[1][8])[::-1]
+    bests = sorted(majority.items(), key=lambda x: x[1][1])[::-1]
 
     # as written by Fabre in fact it is just necessary to compare the modified note
     ranking = {x[0]: i + 1 for i, x in enumerate(bests)}
@@ -92,9 +92,9 @@ def fmajorit(index_median: Dict[str, int], nbvot: int, candidate: str, grades: L
     Returns
     -------
     A list which contains
-    i : alpha the index corresponding to the majority grade
-    m : "enhanced" grade
-    p : rate of sponsors, size at the left
+    i: alpha the index corresponding to the majority grade
+    m: "enhanced" grade
+    p: rate of sponsors, size at the left
     q: rate of opponents, size at the right
     b: boolean = True if more sponsors than opponents
     d: bonus / malus function of p and q
@@ -116,9 +116,31 @@ def fmajorit(index_median: Dict[str, int], nbvot: int, candidate: str, grades: L
     e = min(nbvot / 2 + 1 - sum(grades[:i]), sum(grades[: (i + 1)]) - (nbvot / 2))
     e = int(e * 2)
 
-    """ rank using the method writen in the 'La recherche' from 2012 and add some elements to the precedent method
-        score is a ranking going from 10 to 91 (in the case of 7 mentions)
+    return [i, m, p, q, b, d, e, i2]
+
+
+def scoring(index_median: Dict[str, int], nbvot: int, candidate: str, grades: List[int]):
     """
+    rank using the method writen in the 'La recherche' from 2012 and add some elements to the precedent method
+    score is a ranking going from 10 to 91 (in the case of 7 mentions)
+    Parameters
+    ----------
+    index_median: Dict[str, int]
+        The dictionary of candidate and its median grade
+    nbvot: int
+        The total number of votes
+    candidate: str
+        The considered candidate
+    grades: List[int]
+        The list number of grades for the given candidat
+
+    Returns
+    -------
+        Score
+    """
+
+    i = index_median[candidate]
+
     prc = list(grades)
 
     for nb, val in enumerate(prc):
@@ -142,4 +164,4 @@ def fmajorit(index_median: Dict[str, int], nbvot: int, candidate: str, grades: L
         ballotage = (100 - sum1) / 100
     score = (i + 1) * 10 + bonus + ballotage
 
-    return [i, m, p, q, b, d, e, i2, score]
+    return score
