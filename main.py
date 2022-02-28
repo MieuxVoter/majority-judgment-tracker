@@ -8,6 +8,8 @@ from utils import (
     get_grades,
 )
 from interface_mj import sort_candidates_mj
+from load_surveys import load_surveys
+from misc.enums import Candidacy, AggregationMode
 
 # todo: handle sans opinion if case
 # todo: graphique classement en fonction des dates (avec mediane glissante)
@@ -16,7 +18,7 @@ from interface_mj import sort_candidates_mj
 
 
 class Arguments(tap.Tap):
-    show: bool = False
+    show: bool = True
     html: bool = False
     png: bool = False
     csv: Path = Path("presidentielle_jm.csv")
@@ -26,10 +28,17 @@ class Arguments(tap.Tap):
 def main(args: Arguments):
     args.dest.mkdir(exist_ok=True)
 
-    df = pd.read_csv(args.csv)
+    df = load_surveys(
+        args.csv,
+        no_opinion_mode=True,
+        candidates=Candidacy.ALL_CURRENT_CANDIDATES,
+        aggregation=AggregationMode.FOUR_MENTIONS,
+    )
+
     surveys = get_list_survey(df)
 
     for survey in surveys:
+        print(survey)
         # only the chosen survey
         df_survey = df[df["id"] == survey]
 

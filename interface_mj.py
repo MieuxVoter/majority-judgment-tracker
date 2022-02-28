@@ -1,9 +1,7 @@
 from libs.majority_judgment_2 import majority_judgment as mj
 import pandas as pd
 from pandas import DataFrame
-from utils import (
-    get_intentions,
-)
+from utils import get_intentions
 
 
 def sort_candidates_mj(
@@ -35,6 +33,7 @@ def sort_candidates_mj(
     new_df = new_df.drop(
         labels=new_df.index, axis=0, index=None, columns=None, level=None, inplace=True, errors="raise"
     )
+    # todo add a rank column
     # refilling the dataframe
     for key in ranking:
         row = df_intentions[df_intentions["candidat"] == key]
