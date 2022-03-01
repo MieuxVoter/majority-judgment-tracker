@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import tap
-from plots import plot_merit_profiles
+from plots import plot_merit_profiles, ranking_plot
 from utils import (
     get_list_survey,
     get_grades,
@@ -17,7 +17,7 @@ from misc.enums import Candidacy, AggregationMode
 
 
 class Arguments(tap.Tap):
-    show: bool = True
+    show: bool = False
     html: bool = False
     png: bool = False
     csv: Path = Path("presidentielle_jm.csv")
@@ -75,6 +75,7 @@ def main(args: Arguments):
 
     print("done")
 
+    fig = ranking_plot(df)
 
 
 if __name__ == "__main__":

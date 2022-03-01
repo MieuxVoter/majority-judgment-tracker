@@ -6,8 +6,8 @@ from utils import get_intentions
 
 
 def sort_candidates_mj(
-        df: DataFrame,
-        nb_grades: int,
+    df: DataFrame,
+    nb_grades: int,
 ):
     """
     Reindexing candidates in the dataFrame following majority judgment rules

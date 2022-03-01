@@ -1,8 +1,9 @@
 from pathlib import Path
 import plotly.express as px
+import plotly.graph_objects as go
 from seaborn import color_palette
 from pandas import DataFrame
-from utils import get_intentions_colheaders
+from utils import get_intentions_colheaders, get_candidates
 
 
 def plot_merit_profiles(
@@ -18,8 +19,8 @@ def plot_merit_profiles(
 
     # compute the list sorted of candidat names to order y axis.
     candidat_list = list(df["candidat"])
-    rank_list = list(df["rang"]-1)
-    sorted_candidat_list = [i[1] for i in sorted(zip( rank_list, candidat_list)) ]
+    rank_list = list(df["rang"] - 1)
+    sorted_candidat_list = [i[1] for i in sorted(zip(rank_list, candidat_list))]
     r_sorted_candidat_list = sorted_candidat_list.copy()
     r_sorted_candidat_list.reverse()
 
@@ -79,8 +80,8 @@ def plot_merit_profiles(
             automargin=True,
             ticklabelposition="outside left",
             ticksuffix="   ",
-            categoryorder='array',
-            categoryarray=r_sorted_candidat_list
+            categoryorder="array",
+            categoryarray=r_sorted_candidat_list,
         ),  # space
     )
     date_str = ""
@@ -113,4 +114,16 @@ def plot_merit_profiles(
         )
     )
 
+    return fig
+
+
+def ranking_plot(df):
+    df = df[df["fin_enquete"] > "2021-12-01"]
+    fig = go.Figure()
+    for ii in get_candidates(df):
+        temp_df = df[df["candidat"] == ii]
+        fig.add_trace(go.Scatter(x=temp_df["fin_enquete"], y=temp_df["rang"]))
+
+    print("yo")
+    fig.show()
     return fig
