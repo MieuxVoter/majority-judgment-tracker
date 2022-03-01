@@ -118,12 +118,13 @@ def plot_merit_profiles(
 
 
 def ranking_plot(df):
-    df = df[df["fin_enquete"] > "2021-12-01"]
+    # df = df[df["fin_enquete"] > "2021-12-01"]
     fig = go.Figure()
     for ii in get_candidates(df):
         temp_df = df[df["candidat"] == ii]
-        fig.add_trace(go.Scatter(x=temp_df["fin_enquete"], y=temp_df["rang"]))
+        fig.add_trace(go.Scatter(x=temp_df["fin_enquete"], y=temp_df["rang"], mode="markers", name=ii))
 
+    fig.update_layout(yaxis=dict(autorange='reversed'))
     print("yo")
     fig.show()
     return fig
