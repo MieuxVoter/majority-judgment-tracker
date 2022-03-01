@@ -11,7 +11,6 @@ from interface_mj import sort_candidates_mj
 from load_surveys import load_surveys
 from misc.enums import Candidacy, AggregationMode
 
-# todo: handle sans opinion if case
 # todo: graphique classement en fonction des dates (avec mediane glissante)
 # todo: moyennes / ecart-type grades sur un profil de merite.
 # todo: video d'evolution du graphique (baromètre animé)
@@ -35,12 +34,15 @@ def main(args: Arguments):
         aggregation=AggregationMode.FOUR_MENTIONS,
     )
 
+    # Compute the rank for each survey
+    df["rang"] = None
+
     surveys = get_list_survey(df)
 
     for survey in surveys:
         print(survey)
         # only the chosen survey
-        df_survey = df[df["id"] == survey]
+        df_survey = df[df["id"] == survey].copy()
 
         nb_grades = df_survey["nombre_mentions"].unique()[0]
         grades = get_grades(df_survey, nb_grades)
@@ -49,16 +51,20 @@ def main(args: Arguments):
         sponsor = df_survey["commanditaire"].loc[first_idx]
         date = df_survey["fin_enquete"].loc[first_idx]
 
-        df_sorted = sort_candidates_mj(df_survey, nb_grades)
+        df_with_rank = sort_candidates_mj(df_survey, nb_grades)
 
-        fig = plot_merit_profiles(
-            df=df_sorted,
-            grades=grades,
-            auto_text=False,
-            source=source,
-            date=date,
-            sponsor=sponsor,
-        )
+        # refill the dataframe of surveys
+        df[df["id"] == survey] = df_with_rank
+
+        if args.show or args.html or args.png:
+            fig = plot_merit_profiles(
+                df=df_with_rank,
+                grades=grades,
+                auto_text=False,
+                source=source,
+                date=date,
+                sponsor=sponsor,
+            )
 
         if args.show:
             fig.show()
@@ -66,6 +72,9 @@ def main(args: Arguments):
             fig.write_html(f"{args.dest}/{survey}.html")
         if args.png:
             fig.write_image(f"{args.dest}/{survey}.png")
+
+    print("done")
+
 
 
 if __name__ == "__main__":

@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List
 import plotly.express as px
 from seaborn import color_palette
 from pandas import DataFrame
@@ -8,7 +7,7 @@ from utils import get_intentions_colheaders
 
 def plot_merit_profiles(
     df: DataFrame,
-    grades: List,
+    grades: list,
     auto_text: bool = True,
     font_size: int = 20,
     date: str = None,
@@ -16,6 +15,13 @@ def plot_merit_profiles(
     source: str = None,
 ):
     nb_grades = len(grades)
+
+    # compute the list sorted of candidat names to order y axis.
+    candidat_list = list(df["candidat"])
+    rank_list = list(df["rang"]-1)
+    sorted_candidat_list = [i[1] for i in sorted(zip( rank_list, candidat_list)) ]
+    r_sorted_candidat_list = sorted_candidat_list.copy()
+    r_sorted_candidat_list.reverse()
 
     colors = color_palette(palette="coolwarm", n_colors=nb_grades)
     color_dict = {f"intention_mention_{i + 1}": f"rgb{str(colors[i])}" for i in range(nb_grades)}
@@ -73,6 +79,8 @@ def plot_merit_profiles(
             automargin=True,
             ticklabelposition="outside left",
             ticksuffix="   ",
+            categoryorder='array',
+            categoryarray=r_sorted_candidat_list
         ),  # space
     )
     date_str = ""
