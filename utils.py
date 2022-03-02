@@ -25,3 +25,7 @@ def get_grades(df: DataFrame, nb_mentions: int = 7) -> object:
     mentions_colheader = mentions_colheader[:nb_mentions]
     numpy_mention = df[mentions_colheader].to_numpy().tolist()[0]
     return numpy_mention
+
+
+def get_candidates(df: DataFrame):
+    return df["candidat"].unique()
