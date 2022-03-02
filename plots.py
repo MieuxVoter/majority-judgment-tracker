@@ -7,13 +7,13 @@ from utils import get_intentions_colheaders, get_candidates
 
 
 def plot_merit_profiles(
-        df: DataFrame,
-        grades: list,
-        auto_text: bool = True,
-        font_size: int = 20,
-        date: str = None,
-        sponsor: str = None,
-        source: str = None,
+    df: DataFrame,
+    grades: list,
+    auto_text: bool = True,
+    font_size: int = 20,
+    date: str = None,
+    sponsor: str = None,
+    source: str = None,
 ):
     nb_grades = len(grades)
 
@@ -120,21 +120,22 @@ def plot_merit_profiles(
 def ranking_plot(df):
     # df = df[df["fin_enquete"] > "2021-12-01"]
 
-    COLORS = {"Marine Le Pen": {"couleur": "#04006e"},
-              "Emmanuel Macron": {"couleur": "#0095eb"},
-              "Yannick Jadot": {"couleur": "#0bb029"},
-              "Jean-Luc Mélenchon": {"couleur": "#de001e"},
-              "Fabien Roussel": {"couleur": "#940014"},
-              "Valérie Pécresse": {"couleur": "#0242e3"},
-              "Anne Hidalgo": {"couleur": "#b339a4"},
-              "Christiane Taubira": {"couleur": "#c7a71a"},
-              "Eric Zemmour": {"couleur": "#010038"},
-              "Nathalie Arthaud": {"couleur": "#8f0007"},
-              "Jean Lassalle": {"couleur": "#c96800"},
-              "Philippe Poutou": {"couleur": "#82001a"},
-              "François Asselineau": {"couleur": "#12004f"},
-              "Nicolas Dupont-Aignan": {"couleur": "#3a84c4"}
-              }
+    COLORS = {
+        "Marine Le Pen": {"couleur": "#04006e"},
+        "Emmanuel Macron": {"couleur": "#0095eb"},
+        "Yannick Jadot": {"couleur": "#0bb029"},
+        "Jean-Luc Mélenchon": {"couleur": "#de001e"},
+        "Fabien Roussel": {"couleur": "#940014"},
+        "Valérie Pécresse": {"couleur": "#0242e3"},
+        "Anne Hidalgo": {"couleur": "#b339a4"},
+        "Christiane Taubira": {"couleur": "#c7a71a"},
+        "Eric Zemmour": {"couleur": "#010038"},
+        "Nathalie Arthaud": {"couleur": "#8f0007"},
+        "Jean Lassalle": {"couleur": "#c96800"},
+        "Philippe Poutou": {"couleur": "#82001a"},
+        "François Asselineau": {"couleur": "#12004f"},
+        "Nicolas Dupont-Aignan": {"couleur": "#3a84c4"},
+    }
 
     fig = go.Figure()
 
@@ -142,14 +143,17 @@ def ranking_plot(df):
 
     for ii in get_candidates(df):
         temp_df = df[df["candidat"] == ii]
-        fig.add_trace(go.Scatter(x=temp_df["fin_enquete"], y=temp_df["rang"],
-                                 mode="markers+lines",
-                                 name=ii,
-                                 marker=dict(color=COLORS[ii]["couleur"])))
+        fig.add_trace(
+            go.Scatter(
+                x=temp_df["fin_enquete"],
+                y=temp_df["rang"],
+                mode="markers+lines",
+                name=ii,
+                marker=dict(color=COLORS[ii]["couleur"]),
+            )
+        )
 
-    fig.update_layout(yaxis=dict(autorange='reversed',
-                      tick0=1,
-                      dtick=1))
+    fig.update_layout(yaxis=dict(autorange="reversed", tick0=1, dtick=1))
     print("yo")
     fig.show()
     return fig
