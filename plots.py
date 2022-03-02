@@ -125,6 +125,7 @@ def ranking_plot(df):
         "Emmanuel Macron": {"couleur": "#0095eb"},
         "Yannick Jadot": {"couleur": "#0bb029"},
         "Jean-Luc Mélenchon": {"couleur": "#de001e"},
+        "Arnaud Montebourg": {"couleur": "#940014"},
         "Fabien Roussel": {"couleur": "#940014"},
         "Valérie Pécresse": {"couleur": "#0242e3"},
         "Anne Hidalgo": {"couleur": "#b339a4"},

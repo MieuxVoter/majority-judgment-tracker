@@ -14,7 +14,7 @@ import os
 
 from utils import get_list_survey
 
-from misc.enums import Candidacy, AggregationMode
+from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 
 def remove_undecided(df_survey: DataFrame, df_undecided_grades: DataFrame):
@@ -141,6 +141,7 @@ def load_surveys(
     no_opinion_mode: bool = True,
     candidates: Candidacy = None,
     aggregation: AggregationMode = None,
+    polling_organization: PollingOrganizations = None,
 ):
     """
     normalize file
@@ -155,6 +156,8 @@ def load_surveys(
         how to manage candidacies
     aggregation: AggregationMode
         how to manage Aggregation of several grades
+    polling_organization: PollingOrganizations
+        select polling organization
     Returns
     -------
     Return the DataFrame df with all surveys inside
@@ -163,9 +166,14 @@ def load_surveys(
         candidates = Candidacy.ALL
     if aggregation is None:
         aggregation = AggregationMode.NO_AGGREGATION
+    if polling_organization is None:
+        polling_organization = PollingOrganizations.ALL
 
     df_surveys = pd.read_csv(csv_file, na_filter=False)
     df_standardisation = pd.read_csv("standardisation.csv", na_filter=False)
+
+    if polling_organization != PollingOrganizations.ALL:
+        df_surveys = df_surveys[df_surveys["commanditaire"] == polling_organization.value]
 
     # remove undecided
     if no_opinion_mode:

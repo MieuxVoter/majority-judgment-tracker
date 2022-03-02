@@ -9,7 +9,7 @@ from utils import (
 )
 from interface_mj import sort_candidates_mj
 from load_surveys import load_surveys
-from misc.enums import Candidacy, AggregationMode
+from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 # todo: graphique classement en fonction des dates (avec mediane glissante)
 # todo: moyennes / ecart-type grades sur un profil de merite.

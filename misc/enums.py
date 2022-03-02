@@ -18,3 +18,12 @@ class AggregationMode(Enum):
 
     NO_AGGREGATION = "None"
     FOUR_MENTIONS = "to_4_mentions"
+
+
+class PollingOrganizations(Enum):
+    """
+    Select how Institutes
+    """
+
+    ALL = "None"
+    MIEUX_VOTER = "Mieux voter"
