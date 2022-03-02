@@ -78,7 +78,7 @@ def remove_undecided(df_survey: DataFrame, df_undecided_grades: DataFrame):
 
 
 def convert_grades(
-    df_survey: DataFrame, df_corresponding_grades: DataFrame, aggregation: AggregationMode, no_opinion_mode: bool
+        df_survey: DataFrame, df_corresponding_grades: DataFrame, aggregation: AggregationMode, no_opinion_mode: bool
 ):
     """
     Remove the undecided grades and affect it proportionally to the other grades
@@ -137,11 +137,11 @@ def convert_grades(
 
 
 def load_surveys(
-    csv_file: Path,
-    no_opinion_mode: bool = True,
-    candidates: Candidacy = None,
-    aggregation: AggregationMode = None,
-    polling_organization: PollingOrganizations = None,
+        csv_file: Path,
+        no_opinion_mode: bool = True,
+        candidates: Candidacy = None,
+        aggregation: AggregationMode = None,
+        polling_organization: PollingOrganizations = None,
 ):
     """
     normalize file
@@ -196,6 +196,13 @@ def load_surveys(
     if candidates == Candidacy.ALL_CURRENT_CANDIDATES:
         df_surveys = df_surveys[df_surveys["candidat_presidentielle"] == True]
         df_surveys = df_surveys[df_surveys["retrait_candidature"] == "nan"]
+
+    if candidates == Candidacy.ALL_CURRENT_CANDIDATES_WITH_ENOUGH_DATA:
+        df_surveys = df_surveys[df_surveys["candidat_presidentielle"] == True]
+        df_surveys = df_surveys[df_surveys["retrait_candidature"] == "nan"]
+        df_surveys = df_surveys[df_surveys["candidat"] != "Nathalie Arthaud"]  # todo: dont hard code
+        df_surveys = df_surveys[
+            df_surveys["candidat"] != "Jean Lassalle"]  # todo: remove candidates with only two dots instead.
 
     if aggregation != AggregationMode.NO_AGGREGATION:
 

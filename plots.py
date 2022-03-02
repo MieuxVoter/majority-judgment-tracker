@@ -157,18 +157,6 @@ def ranking_plot(df):
 
         fig.add_trace(
             go.Scatter(
-                x=temp_df["fin_enquete"],
-                y=temp_df["rang"],
-                mode="lines",
-                name=ii,
-                marker=dict(color=COLORS[ii]["couleur"]),
-                showlegend=False,
-                legendgroup=ii,
-            )
-        )
-
-        fig.add_trace(
-            go.Scatter(
                 x=temp_df["fin_enquete"].iloc[0:1],
                 y=temp_df["rang"].iloc[0:1],
                 mode="markers",
