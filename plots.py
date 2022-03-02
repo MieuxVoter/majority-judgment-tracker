@@ -141,20 +141,79 @@ def ranking_plot(df):
     fig = go.Figure()
 
     df = df.sort_values(by="fin_enquete")
-
+    annotations = []
     for ii in get_candidates(df):
         temp_df = df[df["candidat"] == ii]
         fig.add_trace(
             go.Scatter(
                 x=temp_df["fin_enquete"],
                 y=temp_df["rang"],
-                mode="markers+lines",
+                mode="lines",
                 name=ii,
                 marker=dict(color=COLORS[ii]["couleur"]),
+                legendgroup=ii,
             )
         )
 
-    fig.update_layout(yaxis=dict(autorange="reversed", tick0=1, dtick=1))
+        fig.add_trace(
+            go.Scatter(
+                x=temp_df["fin_enquete"],
+                y=temp_df["rang"],
+                mode="lines",
+                name=ii,
+                marker=dict(color=COLORS[ii]["couleur"]),
+                showlegend=False,
+                legendgroup=ii,
+            )
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=temp_df["fin_enquete"].iloc[0:1],
+                y=temp_df["rang"].iloc[0:1],
+                mode="markers",
+                name=ii,
+                marker=dict(color=COLORS[ii]["couleur"]),
+                showlegend=False,
+                legendgroup=ii,
+            )
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=temp_df["fin_enquete"].iloc[-1:],
+                y=temp_df["rang"].iloc[-1:],
+                mode="markers",
+                name=ii,
+                marker=dict(color=COLORS[ii]["couleur"]),
+                legendgroup=ii,
+                showlegend=False,
+            )
+        )
+
+        # name with break btw name and surname
+        idx_space = ii.find(" ")
+        ii = ii[:idx_space] + "<br>" + ii[idx_space+1:]
+        # last dot annotation
+        annotations.append(dict(x=temp_df["fin_enquete"].iloc[-1], y=temp_df["rang"].iloc[-1],
+                                xanchor='left', xshift=10, yanchor='middle',
+                                text=ii,
+                                font=dict(family='Arial',
+                                          size=16),
+                                showarrow=False),)
+        # first dot annotation
+        if temp_df["fin_enquete"].iloc[-1] != temp_df["fin_enquete"].iloc[0]:
+            annotations.append(dict(x=temp_df["fin_enquete"].iloc[0], y=temp_df["rang"].iloc[0],
+                                    xanchor='right', xshift=-10, yanchor='middle',
+                                    text=ii,
+                                    font=dict(family='Arial',
+                                              size=16),
+                                    showarrow=False))
+
+    fig.update_layout(yaxis=dict(autorange="reversed",
+                                 tick0=1, dtick=1),
+                      annotations=annotations,
+                      plot_bgcolor='white')
     print("yo")
     fig.show()
     return fig
