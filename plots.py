@@ -143,6 +143,7 @@ def ranking_plot(df):
     df = df.sort_values(by="fin_enquete")
     annotations = []
     for ii in get_candidates(df):
+        print(ii)
         temp_df = df[df["candidat"] == ii]
         fig.add_trace(
             go.Scatter(
@@ -181,27 +182,74 @@ def ranking_plot(df):
 
         # name with break btw name and surname
         idx_space = ii.find(" ")
-        ii = ii[:idx_space] + "<br>" + ii[idx_space+1:]
+        name_label = ii[:idx_space] + "<br>" + ii[idx_space + 1 :]
+        size_annotations = 12
+
         # last dot annotation
-        annotations.append(dict(x=temp_df["fin_enquete"].iloc[-1], y=temp_df["rang"].iloc[-1],
-                                xanchor='left', xshift=10, yanchor='middle',
-                                text=ii,
-                                font=dict(family='Arial',
-                                          size=16),
-                                showarrow=False),)
+        annotations.append(
+            dict(
+                x=temp_df["fin_enquete"].iloc[-1],
+                y=temp_df["rang"].iloc[-1],
+                xanchor="left",
+                xshift=10,
+                yanchor="middle",
+                text=name_label,
+                font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
+                showarrow=False,
+            ),
+        )
         # first dot annotation
         if temp_df["fin_enquete"].iloc[-1] != temp_df["fin_enquete"].iloc[0]:
-            annotations.append(dict(x=temp_df["fin_enquete"].iloc[0], y=temp_df["rang"].iloc[0],
-                                    xanchor='right', xshift=-10, yanchor='middle',
-                                    text=ii,
-                                    font=dict(family='Arial',
-                                              size=16),
-                                    showarrow=False))
+            annotations.append(
+                dict(
+                    x=temp_df["fin_enquete"].iloc[0],
+                    y=temp_df["rang"].iloc[0],
+                    xanchor="right",
+                    xshift=-10,
+                    yanchor="middle",
+                    text=name_label,
+                    font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
+                    showarrow=False,
+                )
+            )
 
-    fig.update_layout(yaxis=dict(autorange="reversed",
-                                 tick0=1, dtick=1),
-                      annotations=annotations,
-                      plot_bgcolor='white')
-    print("yo")
-    fig.show()
+    fig.add_vline(x="2022-04-10", line_dash="dot")
+    annotations.append(
+        dict(
+            x="2022-04-10",
+            y=1.5,
+            xanchor="left",
+            xshift=10,
+            yanchor="middle",
+            text="1er Tour",
+            font=dict(family="Arial", size=size_annotations),
+            showarrow=False,
+        )
+    )
+
+    fig.update_layout(
+        yaxis=dict(autorange="reversed", tick0=1, dtick=1, visible=False),
+        annotations=annotations,
+        plot_bgcolor="white",
+        showlegend=False)
+
+    date = df["fin_enquete"].max()
+    title="<b>Evaluation des sondages au jugement majoritaire <br> pour l'élection présidentielle 2022</b> <br>" \
+          + f"<i> Dernier sondage: {date}.</i>"
+    fig.update_layout(title=title, title_x=0.5)
+
+    fig.add_layout_image(
+        dict(
+            source="https://raw.githubusercontent.com/MieuxVoter/majority-judgment-tracker/main/icons/logo.png",
+            xref="paper",
+            yref="paper",
+            x=0.05,
+            y=1.01,
+            sizex=0.15,
+            sizey=0.15,
+            xanchor="left",
+            yanchor="bottom",
+        )
+    )
+
     return fig

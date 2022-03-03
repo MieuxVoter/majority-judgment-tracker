@@ -17,7 +17,9 @@ from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 
 class Arguments(tap.Tap):
-    show: bool = False
+    merit_profiles: bool = False
+    ranking_plot: bool = True
+    show: bool = True
     html: bool = False
     png: bool = False
     csv: Path = Path("presidentielle_jm.csv")
@@ -30,8 +32,9 @@ def main(args: Arguments):
     df = load_surveys(
         args.csv,
         no_opinion_mode=True,
-        candidates=Candidacy.ALL_CURRENT_CANDIDATES,
+        candidates=Candidacy.ALL_CURRENT_CANDIDATES_WITH_ENOUGH_DATA,
         aggregation=AggregationMode.FOUR_MENTIONS,
+        polling_organization=PollingOrganizations.ALL,
     )
 
     # Compute the rank for each survey
@@ -56,7 +59,7 @@ def main(args: Arguments):
         # refill the dataframe of surveys
         df[df["id"] == survey] = df_with_rank
 
-        if args.show or args.html or args.png:
+        if args.merit_profiles:
             fig = plot_merit_profiles(
                 df=df_with_rank,
                 grades=grades,
@@ -66,16 +69,21 @@ def main(args: Arguments):
                 sponsor=sponsor,
             )
 
+            if args.show:
+                fig.show()
+            if args.html:
+                fig.write_html(f"{args.dest}/{survey}.html")
+            if args.png:
+                fig.write_image(f"{args.dest}/{survey}.png")
+
+    if args.ranking_plot:
+        fig = ranking_plot(df)
         if args.show:
             fig.show()
         if args.html:
-            fig.write_html(f"{args.dest}/{survey}.html")
+            fig.write_html(f"{args.dest}/ranking_plot.html")
         if args.png:
-            fig.write_image(f"{args.dest}/{survey}.png")
-
-    print("done")
-
-    fig = ranking_plot(df)
+            fig.write_image(f"{args.dest}/ranking_plot.png")
 
 
 if __name__ == "__main__":
