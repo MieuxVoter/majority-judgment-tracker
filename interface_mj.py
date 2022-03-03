@@ -1,4 +1,5 @@
 from libs.majority_judgment_2 import majority_judgment as mj
+import numpy as np
 import pandas as pd
 from pandas import DataFrame
 from utils import get_intentions
@@ -28,20 +29,28 @@ def sort_candidates_mj(
     merit_profiles_dict = set_dictionary(df_intentions, nb_grades, nb_candidates)
     ranking = mj(merit_profiles_dict, reverse=True)
 
-    # copy and empty the panda datafram to refill it.
-    new_df = df_intentions.copy()
-    new_df = new_df.drop(
-        labels=new_df.index, axis=0, index=None, columns=None, level=None, inplace=True, errors="raise"
-    )
-    # todo add a rank column
-    # refilling the dataframe
-    for key in ranking:
-        row = df_intentions[df_intentions["candidat"] == key]
-        new_df = pd.concat([new_df, row], ignore_index=True)
-    # set new index of rows
-    new_df.index = pd.Index(data=[i for i in range(1, nb_candidates + 1)], dtype="int64")
+    if "rang" not in df.columns:
+        df["rang"] = None
 
-    return new_df.reindex(index=new_df.index[::-1])  # sort to plot it the right way, best candidate at the top.
+    col_index = df.columns.get_loc("rang")
+    for c in ranking:
+        idx = np.where(df["candidat"] == c)[0][0]
+        df.iat[idx, col_index] = ranking[c]
+
+    # # copy and empty the panda datafram to refill it.
+    # new_df = df_intentions.copy()
+    # new_df = new_df.drop(
+    #     labels=new_df.index, axis=0, index=None, columns=None, level=None, inplace=True, errors="raise"
+    # )
+    # # refilling the dataframe
+    # for key in ranking:
+    #     row = df_intentions[df_intentions["candidat"] == key]
+    #     new_df = pd.concat([new_df, row], ignore_index=True)
+    # # set new index of rows
+    # new_df.index = pd.Index(data=[i for i in range(1, nb_candidates + 1)], dtype="int64")
+    # return new_df.reindex(index=new_df.index[::-1]) # sort to plot it the right way, best candidate at the top.
+
+    return df
 
 
 def set_dictionary(df_intentions: DataFrame, nb_grades: int, nb_candidates: int):

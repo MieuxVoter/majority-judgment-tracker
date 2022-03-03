@@ -1,14 +1,14 @@
 from pathlib import Path
-from typing import List
 import plotly.express as px
+import plotly.graph_objects as go
 from seaborn import color_palette
 from pandas import DataFrame
-from utils import get_intentions_colheaders
+from utils import get_intentions_colheaders, get_candidates
 
 
 def plot_merit_profiles(
     df: DataFrame,
-    grades: List,
+    grades: list,
     auto_text: bool = True,
     font_size: int = 20,
     date: str = None,
@@ -16,6 +16,13 @@ def plot_merit_profiles(
     source: str = None,
 ):
     nb_grades = len(grades)
+
+    # compute the list sorted of candidat names to order y axis.
+    candidat_list = list(df["candidat"])
+    rank_list = list(df["rang"] - 1)
+    sorted_candidat_list = [i[1] for i in sorted(zip(rank_list, candidat_list))]
+    r_sorted_candidat_list = sorted_candidat_list.copy()
+    r_sorted_candidat_list.reverse()
 
     colors = color_palette(palette="coolwarm", n_colors=nb_grades)
     color_dict = {f"intention_mention_{i + 1}": f"rgb{str(colors[i])}" for i in range(nb_grades)}
@@ -73,6 +80,8 @@ def plot_merit_profiles(
             automargin=True,
             ticklabelposition="outside left",
             ticksuffix="   ",
+            categoryorder="array",
+            categoryarray=r_sorted_candidat_list,
         ),  # space
     )
     date_str = ""
@@ -100,6 +109,144 @@ def plot_merit_profiles(
             y=0.95,
             sizex=0.2,
             sizey=0.2,
+            xanchor="left",
+            yanchor="bottom",
+        )
+    )
+
+    return fig
+
+
+def ranking_plot(df):
+    # df = df[df["fin_enquete"] > "2021-12-01"]
+
+    COLORS = {
+        "Marine Le Pen": {"couleur": "#04006e"},
+        "Emmanuel Macron": {"couleur": "#0095eb"},
+        "Yannick Jadot": {"couleur": "#0bb029"},
+        "Jean-Luc Mélenchon": {"couleur": "#de001e"},
+        "Arnaud Montebourg": {"couleur": "#940014"},
+        "Fabien Roussel": {"couleur": "#940014"},
+        "Valérie Pécresse": {"couleur": "#0242e3"},
+        "Anne Hidalgo": {"couleur": "#b339a4"},
+        "Christiane Taubira": {"couleur": "#c7a71a"},
+        "Eric Zemmour": {"couleur": "#010038"},
+        "Nathalie Arthaud": {"couleur": "#8f0007"},
+        "Jean Lassalle": {"couleur": "#c96800"},
+        "Philippe Poutou": {"couleur": "#82001a"},
+        "François Asselineau": {"couleur": "#12004f"},
+        "Nicolas Dupont-Aignan": {"couleur": "#3a84c4"},
+    }
+
+    fig = go.Figure()
+
+    df = df.sort_values(by="fin_enquete")
+    annotations = []
+    for ii in get_candidates(df):
+        print(ii)
+        temp_df = df[df["candidat"] == ii]
+        fig.add_trace(
+            go.Scatter(
+                x=temp_df["fin_enquete"],
+                y=temp_df["rang"],
+                mode="lines",
+                name=ii,
+                marker=dict(color=COLORS[ii]["couleur"]),
+                legendgroup=ii,
+            )
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=temp_df["fin_enquete"].iloc[0:1],
+                y=temp_df["rang"].iloc[0:1],
+                mode="markers",
+                name=ii,
+                marker=dict(color=COLORS[ii]["couleur"]),
+                showlegend=False,
+                legendgroup=ii,
+            )
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=temp_df["fin_enquete"].iloc[-1:],
+                y=temp_df["rang"].iloc[-1:],
+                mode="markers",
+                name=ii,
+                marker=dict(color=COLORS[ii]["couleur"]),
+                legendgroup=ii,
+                showlegend=False,
+            )
+        )
+
+        # name with break btw name and surname
+        idx_space = ii.find(" ")
+        name_label = ii[:idx_space] + "<br>" + ii[idx_space + 1 :]
+        size_annotations = 12
+
+        # last dot annotation
+        annotations.append(
+            dict(
+                x=temp_df["fin_enquete"].iloc[-1],
+                y=temp_df["rang"].iloc[-1],
+                xanchor="left",
+                xshift=10,
+                yanchor="middle",
+                text=name_label,
+                font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
+                showarrow=False,
+            ),
+        )
+        # first dot annotation
+        if temp_df["fin_enquete"].iloc[-1] != temp_df["fin_enquete"].iloc[0]:
+            annotations.append(
+                dict(
+                    x=temp_df["fin_enquete"].iloc[0],
+                    y=temp_df["rang"].iloc[0],
+                    xanchor="right",
+                    xshift=-10,
+                    yanchor="middle",
+                    text=name_label,
+                    font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
+                    showarrow=False,
+                )
+            )
+
+    fig.add_vline(x="2022-04-10", line_dash="dot")
+    annotations.append(
+        dict(
+            x="2022-04-10",
+            y=1.5,
+            xanchor="left",
+            xshift=10,
+            yanchor="middle",
+            text="1er Tour",
+            font=dict(family="Arial", size=size_annotations),
+            showarrow=False,
+        )
+    )
+
+    fig.update_layout(
+        yaxis=dict(autorange="reversed", tick0=1, dtick=1, visible=False),
+        annotations=annotations,
+        plot_bgcolor="white",
+        showlegend=False)
+
+    date = df["fin_enquete"].max()
+    title="<b>Evaluation des sondages au jugement majoritaire <br> pour l'élection présidentielle 2022</b> <br>" \
+          + f"<i> Dernier sondage: {date}.</i>"
+    fig.update_layout(title=title, title_x=0.5)
+
+    fig.add_layout_image(
+        dict(
+            source="https://raw.githubusercontent.com/MieuxVoter/majority-judgment-tracker/main/icons/logo.png",
+            xref="paper",
+            yref="paper",
+            x=0.05,
+            y=1.01,
+            sizex=0.15,
+            sizey=0.15,
             xanchor="left",
             yanchor="bottom",
         )
