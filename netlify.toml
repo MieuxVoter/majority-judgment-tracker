@@ -1,0 +1,3 @@
+[build]
+  command = "CI= make app"
+  publish = "trackerapp/build"
