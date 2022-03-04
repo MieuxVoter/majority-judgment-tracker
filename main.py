@@ -75,8 +75,6 @@ def main(args: Arguments):
                 fig.show()
             if args.html:
                 fig.write_html(f"{args.dest}/{survey}.html")
-            if args.json:
-                fig.write_json(f"{args.dest}/{survey}.json")
             if args.png:
                 fig.write_image(f"{args.dest}/{survey}.png")
             if args.json:
