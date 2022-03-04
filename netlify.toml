@@ -1,4 +1,5 @@
 [build]
-  command = "PYTHON_VERSION=python3.9 CI= make app"
+  command = "CI= make app"
   publish = "trackerapp/build"
-  PYTHON_VERSION = "python3.9"
+  environment = {  PYTHON_VERSION = "3.9" }
+
