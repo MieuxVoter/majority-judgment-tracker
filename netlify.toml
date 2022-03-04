@@ -1,0 +1,5 @@
+[build]
+  command = "CI= make app"
+  publish = "trackerapp/build"
+  environment = {  PYTHON_VERSION = "3.8" }
+

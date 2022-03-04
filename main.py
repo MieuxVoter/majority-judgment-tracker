@@ -18,11 +18,11 @@ from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 class Arguments(tap.Tap):
     merit_profiles: bool = False
-    ranking_plot: bool = True
-    show: bool = True
+    ranking_plot: bool = False
+    show: bool = False
     html: bool = False
     png: bool = False
-    json: bool = True
+    json: bool = False
     csv: Path = Path("presidentielle_jm.csv")
     dest: Path = Path("figs")
 
@@ -75,6 +75,8 @@ def main(args: Arguments):
                 fig.show()
             if args.html:
                 fig.write_html(f"{args.dest}/{survey}.html")
+            if args.json:
+                fig.write_json(f"{args.dest}/{survey}.json")
             if args.png:
                 fig.write_image(f"{args.dest}/{survey}.png")
             if args.json:
