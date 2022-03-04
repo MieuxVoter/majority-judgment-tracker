@@ -117,7 +117,7 @@ def plot_merit_profiles(
     return fig
 
 
-def ranking_plot(df):
+def ranking_plot(df, source: str = None, sponsor: str = None):
     # df = df[df["fin_enquete"] > "2021-12-01"]
 
     COLORS = {
@@ -233,9 +233,16 @@ def ranking_plot(df):
         plot_bgcolor="white",
         showlegend=False)
 
+    source_str = ""
+    sponsor_str = ""
+    if source is not None:
+        source_str = f"source: {source}, "
+    if sponsor is not None:
+        sponsor_str = f"commanditaire: {sponsor}"
+
     date = df["fin_enquete"].max()
-    title="<b>Evaluation des sondages au jugement majoritaire <br> pour l'élection présidentielle 2022</b> <br>" \
-          + f"<i> Dernier sondage: {date}.</i>"
+    title="<b>Classement des candidats à l'élection présidentielle 2022<br> au jugement majoritaire </b> <br>" \
+          + f"<i>{source_str}{sponsor_str}, dernier sondage: {date}.</i>"
     fig.update_layout(title=title, title_x=0.5)
 
     fig.add_layout_image(

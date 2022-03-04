@@ -18,14 +18,13 @@ from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 class Arguments(tap.Tap):
     merit_profiles: bool = False
-    ranking_plot: bool = False
-    show: bool = False
+    ranking_plot: bool = True
+    show: bool = True
     html: bool = False
     png: bool = False
     json: bool = False
     csv: Path = Path("presidentielle_jm.csv")
     dest: Path = Path("figs")
-
 
 
 def main(args: Arguments):
@@ -36,7 +35,7 @@ def main(args: Arguments):
         no_opinion_mode=True,
         candidates=Candidacy.ALL_CURRENT_CANDIDATES_WITH_ENOUGH_DATA,
         aggregation=AggregationMode.FOUR_MENTIONS,
-        polling_organization=PollingOrganizations.ALL,
+        polling_organization=PollingOrganizations.ELABE,
     )
 
     # Compute the rank for each survey
@@ -81,7 +80,7 @@ def main(args: Arguments):
                 fig.write_json(f"{args.dest}/{survey}.json")
 
     if args.ranking_plot:
-        fig = ranking_plot(df)
+        fig = ranking_plot(df, source=source, sponsor=sponsor)
         if args.show:
             fig.show()
         if args.html:
