@@ -1,3 +1,4 @@
 [build]
   command = "CI= make app"
   publish = "trackerapp/build"
+  PYTHON_VERSIOn = "python3.9"
