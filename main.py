@@ -22,8 +22,10 @@ class Arguments(tap.Tap):
     show: bool = True
     html: bool = False
     png: bool = False
+    json: bool = True
     csv: Path = Path("presidentielle_jm.csv")
     dest: Path = Path("figs")
+
 
 
 def main(args: Arguments):
@@ -75,6 +77,8 @@ def main(args: Arguments):
                 fig.write_html(f"{args.dest}/{survey}.html")
             if args.png:
                 fig.write_image(f"{args.dest}/{survey}.png")
+            if args.json:
+                fig.write_json(f"{args.dest}/{survey}.json")
 
     if args.ranking_plot:
         fig = ranking_plot(df)
@@ -84,6 +88,8 @@ def main(args: Arguments):
             fig.write_html(f"{args.dest}/ranking_plot.html")
         if args.png:
             fig.write_image(f"{args.dest}/ranking_plot.png")
+        if args.json:
+            fig.write_json(f"{args.dest}/ranking_plot.json")
 
 
 if __name__ == "__main__":

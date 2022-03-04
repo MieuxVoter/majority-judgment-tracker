@@ -173,7 +173,7 @@ def load_surveys(
     df_standardisation = pd.read_csv("standardisation.csv", na_filter=False)
 
     if polling_organization != PollingOrganizations.ALL:
-        df_surveys = df_surveys[df_surveys["commanditaire"] == polling_organization.value]
+        df_surveys = df_surveys[df_surveys["nom_institut"] == polling_organization.value]
 
     # remove undecided
     if no_opinion_mode:

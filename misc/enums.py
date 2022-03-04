@@ -27,4 +27,6 @@ class PollingOrganizations(Enum):
     """
 
     ALL = "None"
-    MIEUX_VOTER = "Mieux voter"
+    MIEUX_VOTER = "Opinion Way"
+    ELABE = "ELABE"
+    IFOP = "IFOP"
