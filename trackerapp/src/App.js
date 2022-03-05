@@ -20,7 +20,6 @@ class App extends Component {
   ) => {
     switch (action) {
       case 'select-option':
-        console.log(this.state)
         this.setState({option: inputValue.value});
     }
   };
