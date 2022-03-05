@@ -29,6 +29,10 @@ class App extends Component {
     const {option} = this.state;
     console.log(option, options)
     const graph = graphs[option]
+    const data = graph.data
+    const layout = graph.layout
+    layout.autosize = true
+
     return (
       <div>
         <>
@@ -49,11 +53,16 @@ class App extends Component {
               fontSize: 12,
               fontStyle: 'italic',
               marginTop: '1em',
+              width: "100%",
             }}
           >
           </div>
         </>
-        <Plot {...graph} />
+        <Plot data={data} layout={layout}
+          config={{responsive: true}}
+          useResizeHandler={true}
+          style={{width: "100%", height: "100%"}}
+        />
       </div >
     );
   }

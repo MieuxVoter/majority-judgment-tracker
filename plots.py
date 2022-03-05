@@ -33,8 +33,6 @@ def plot_merit_profiles(
         orientation="h",
         text_auto=auto_text,
         color_discrete_map=color_dict,
-        width=1000,
-        height=600,
     )
 
     fig.update_traces(textfont_size=font_size, textangle=0, textposition="auto", cliponaxis=False, width=0.5)
@@ -55,6 +53,7 @@ def plot_merit_profiles(
     # Legend
     fig.update_layout(
         legend_title_text=None,
+        autosize=True,
         legend=dict(orientation="h", xanchor="center", x=0.5, y=-0.05),  # 50 % of the figure width
     )
 
