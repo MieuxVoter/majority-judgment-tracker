@@ -14,6 +14,7 @@ def plot_merit_profiles(
     date: str = None,
     sponsor: str = None,
     source: str = None,
+    show_no_opinion: bool = True,
 ):
     nb_grades = len(grades)
 
@@ -63,6 +64,11 @@ def plot_merit_profiles(
 
     # no back ground
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+
+    no_opinion_suffix = ""
+    if show_no_opinion:
+        no_opinion_suffix += "<br><i>(sans opinion " + str(df["sans_opinion"].iloc[-1]) + "%) </i>"
+        #todo: be nicely added to y ticks
 
     # xticks
     fig.update_layout(
@@ -117,7 +123,9 @@ def plot_merit_profiles(
     return fig
 
 
-def ranking_plot(df, source: str = None, sponsor: str = None):
+def ranking_plot(
+    df, source: str = None, sponsor: str = None, show_best_grade: bool = True, show_no_opinion: bool = True
+):
     # df = df[df["fin_enquete"] > "2021-12-01"]
 
     COLORS = {
@@ -185,19 +193,6 @@ def ranking_plot(df, source: str = None, sponsor: str = None):
         name_label = ii[:idx_space] + "<br>" + ii[idx_space + 1 :]
         size_annotations = 12
 
-        # last dot annotation
-        annotations.append(
-            dict(
-                x=temp_df["fin_enquete"].iloc[-1],
-                y=temp_df["rang"].iloc[-1],
-                xanchor="left",
-                xshift=10,
-                yanchor="middle",
-                text=name_label,
-                font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
-                showarrow=False,
-            ),
-        )
         # first dot annotation
         if temp_df["fin_enquete"].iloc[-1] != temp_df["fin_enquete"].iloc[0]:
             annotations.append(
@@ -212,6 +207,28 @@ def ranking_plot(df, source: str = None, sponsor: str = None):
                     showarrow=False,
                 )
             )
+
+        extended_name_label = name_label
+        if show_best_grade:
+            extended_name_label += (
+                "<br>" + temp_df["mention_majoritaire"].iloc[-1][0].upper() + temp_df["mention_majoritaire"].iloc[-1][1:]
+            )
+        if show_no_opinion:
+            extended_name_label += "<br><i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%) </i>"
+
+        # last dot annotation
+        annotations.append(
+            dict(
+                x=temp_df["fin_enquete"].iloc[-1],
+                y=temp_df["rang"].iloc[-1],
+                xanchor="left",
+                xshift=10,
+                yanchor="middle",
+                text=extended_name_label,
+                font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
+                showarrow=False,
+            ),
+        )
 
     fig.add_vline(x="2022-04-10", line_dash="dot")
     annotations.append(
@@ -231,7 +248,8 @@ def ranking_plot(df, source: str = None, sponsor: str = None):
         yaxis=dict(autorange="reversed", tick0=1, dtick=1, visible=False),
         annotations=annotations,
         plot_bgcolor="white",
-        showlegend=False)
+        showlegend=False,
+    )
 
     source_str = ""
     sponsor_str = ""
@@ -241,8 +259,10 @@ def ranking_plot(df, source: str = None, sponsor: str = None):
         sponsor_str = f"commanditaire: {sponsor}"
 
     date = df["fin_enquete"].max()
-    title="<b>Classement des candidats à l'élection présidentielle 2022<br> au jugement majoritaire </b> <br>" \
-          + f"<i>{source_str}{sponsor_str}, dernier sondage: {date}.</i>"
+    title = (
+        "<b>Classement des candidats à l'élection présidentielle 2022<br> au jugement majoritaire </b> <br>"
+        + f"<i>{source_str}{sponsor_str}, dernier sondage: {date}.</i>"
+    )
     fig.update_layout(title=title, title_x=0.5)
 
     fig.add_layout_image(

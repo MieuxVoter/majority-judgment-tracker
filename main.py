@@ -17,7 +17,7 @@ from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 
 class Arguments(tap.Tap):
-    merit_profiles: bool = False
+    merit_profiles: bool = True
     ranking_plot: bool = True
     show: bool = True
     html: bool = False
@@ -34,12 +34,13 @@ def main(args: Arguments):
         args.csv,
         no_opinion_mode=True,
         candidates=Candidacy.ALL_CURRENT_CANDIDATES_WITH_ENOUGH_DATA,
-        aggregation=AggregationMode.FOUR_MENTIONS,
-        polling_organization=PollingOrganizations.ELABE,
+        aggregation=AggregationMode.NO_AGGREGATION,
+        polling_organization=PollingOrganizations.IFOP,
     )
 
     # Compute the rank for each survey
     df["rang"] = None
+    df["mention_majoritaire"] = None
 
     surveys = get_list_survey(df)
 

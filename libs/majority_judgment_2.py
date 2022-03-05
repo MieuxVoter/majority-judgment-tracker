@@ -31,7 +31,8 @@ def majority_judgment(data: Dict[str, List[Union[int, float]]] = None, reverse: 
         if you want to flip the grades order
     Returns
     -------
-        Rank order for each candidates in a Dictionary Dict[str,rank: int]
+        Rank order for each candidates in a Dictionary Dict[str, rank: int]
+        best_grades Dict[str, grade: int]
     """
     if reverse:
         data = {x: l[::-1] for x, l in data.items()}
@@ -53,7 +54,7 @@ def majority_judgment(data: Dict[str, List[Union[int, float]]] = None, reverse: 
     # as written by Fabre in fact it is just necessary to compare the modified note
     ranking = {x[0]: i + 1 for i, x in enumerate(bests)}
 
-    return ranking
+    return ranking, median_grades
 
 
 def best_grade(l: List):

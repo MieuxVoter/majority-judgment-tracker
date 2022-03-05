@@ -24,6 +24,8 @@ def get_grades(df: DataFrame, nb_mentions: int = 7) -> object:
     mentions_colheader = [s for s in list_col if "mention" in s and not "intention" in s and not "nombre" in s]
     mentions_colheader = mentions_colheader[:nb_mentions]
     numpy_mention = df[mentions_colheader].to_numpy().tolist()[0]
+
+    numpy_mention = [m for m in numpy_mention if m != "nan"]
     return numpy_mention
 
 

@@ -52,10 +52,11 @@ def remove_undecided(df_survey: DataFrame, df_undecided_grades: DataFrame):
 
     # remove the undecided grades
     if the_undecided_grade_nums:
-        df_survey.loc[df_survey.index, the_undecided_grades[0]] = "nan"
+        for ii in the_undecided_grades:
+            df_survey.loc[df_survey.index, ii] = "nan"
 
         index_no = df_survey.columns.get_loc("nombre_mentions")
-        df_survey.loc[df_survey.index, index_no] = df_survey.iloc[0, index_no] - 1
+        df_survey.loc[df_survey.index, "nombre_mentions"] = int(df_survey.iloc[0, index_no] - len(the_undecided_grades))
 
         cols_grades_undecided = [f"intention_mention_{i + 1}" for i in the_undecided_grade_nums]
         cols_grades_decided = [
@@ -70,6 +71,11 @@ def remove_undecided(df_survey: DataFrame, df_undecided_grades: DataFrame):
         for col_grade_decided in cols_grades_decided:
             index_no = df_survey.columns.get_loc(col_grade_decided)
             df_survey.iloc[:, index_no] = df_survey.iloc[:, index_no] * (1 + tot_undecided / tot_decided)
+
+        # the no opinion col to zero and store it somwehere else
+        df_survey["sans_opinion"] = df_survey[cols_grades_undecided].sum(axis=1)
+        df_survey[cols_grades_undecided] = 0
+
 
         if np.round(df_survey[cols_grades_decided].sum(axis=1) - tot, 10).any() != 0:
             raise ValueError("Something went wrong when reaffecting undecided grades.")
@@ -177,6 +183,8 @@ def load_surveys(
 
     # remove undecided
     if no_opinion_mode:
+        df_surveys["sans_opinion"] = None
+
         df_undecided_grades = df_standardisation[df_standardisation["to_4_mentions"] == "sans opinion"]
         surveys = get_list_survey(df_surveys)
 
@@ -186,7 +194,7 @@ def load_surveys(
             df_survey = df_surveys[df_surveys["id"] == survey].copy()
             # remove undecided grades
             df_survey = remove_undecided(df_survey, df_undecided_grades)
-            # todo : need to save somewhere the initial amount of undecided grades
+
             # refill the dataframe of surveys
             df_surveys[df_surveys["id"] == survey] = df_survey
 
