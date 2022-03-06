@@ -16,6 +16,8 @@ def plot_merit_profiles(
     source: str = None,
     show_no_opinion: bool = True,
 ):
+    df = df.copy()
+
     nb_grades = len(grades)
 
     # compute the list sorted of candidat names to order y axis.
@@ -65,10 +67,22 @@ def plot_merit_profiles(
     # no back ground
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
 
-    no_opinion_suffix = ""
+    # Add sans opinion to y tick label # todo : it may be simplified !
+
     if show_no_opinion:
-        no_opinion_suffix += "<br><i>(sans opinion " + str(df["sans_opinion"].iloc[-1]) + "%) </i>"
-        #todo: be nicely added to y ticks
+        df["candidat_sans_opinion"] = None
+        for ii, cell in enumerate(df["candidat"]):
+            df["candidat_sans_opinion"].iat[ii] = "<b>"+ cell +"</b>" + "     <br><i>(sans opinion " + str(
+                df["sans_opinion"].iloc[ii]) + "%)</i>     "
+        # compute the list sorted of candidat names to order y axis.
+        candidat_list = list(df["candidat_sans_opinion"])
+        rank_list = list(df["rang"] - 1)
+        sorted_candidat_list = [i[1] for i in sorted(zip(rank_list, candidat_list))]
+        r_sorted_candidat_no_opinion_list = sorted_candidat_list.copy()
+        r_sorted_candidat_no_opinion_list.reverse()
+        yticktext = r_sorted_candidat_no_opinion_list
+    else:
+        yticktext = ["<b>" + s + "</b>" + "     " for s in r_sorted_candidat_list]
 
     # xticks
     fig.update_layout(
@@ -86,6 +100,9 @@ def plot_merit_profiles(
             automargin=True,
             ticklabelposition="outside left",
             ticksuffix="   ",
+            tickmode="array",
+            tickvals=[i for i in range(len(df))],
+            ticktext=yticktext,
             categoryorder="array",
             categoryarray=r_sorted_candidat_list,
         ),  # space
@@ -202,16 +219,18 @@ def ranking_plot(
                     xanchor="right",
                     xshift=-10,
                     yanchor="middle",
-                    text=name_label,
+                    text=f"<b>{name_label}</b>",
                     font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
                     showarrow=False,
                 )
             )
 
-        extended_name_label = name_label
+        extended_name_label = f"<b>{name_label}</b>"
         if show_best_grade:
             extended_name_label += (
-                "<br>" + temp_df["mention_majoritaire"].iloc[-1][0].upper() + temp_df["mention_majoritaire"].iloc[-1][1:]
+                "<br>"
+                + temp_df["mention_majoritaire"].iloc[-1][0].upper()
+                + temp_df["mention_majoritaire"].iloc[-1][1:]
             )
         if show_no_opinion:
             extended_name_label += "<br><i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%) </i>"

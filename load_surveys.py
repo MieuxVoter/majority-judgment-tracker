@@ -76,7 +76,6 @@ def remove_undecided(df_survey: DataFrame, df_undecided_grades: DataFrame):
         df_survey["sans_opinion"] = df_survey[cols_grades_undecided].sum(axis=1)
         df_survey[cols_grades_undecided] = 0
 
-
         if np.round(df_survey[cols_grades_decided].sum(axis=1) - tot, 10).any() != 0:
             raise ValueError("Something went wrong when reaffecting undecided grades.")
 

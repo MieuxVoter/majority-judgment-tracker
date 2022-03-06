@@ -69,6 +69,7 @@ def main(args: Arguments):
                 source=source,
                 date=date,
                 sponsor=sponsor,
+                show_no_opinion=False
             )
 
             if args.show:
