@@ -17,9 +17,9 @@ from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 
 class Arguments(tap.Tap):
-    merit_profiles: bool = True
-    ranking_plot: bool = True
-    show: bool = True
+    merit_profiles: bool = False
+    ranking_plot: bool = False
+    show: bool = False
     html: bool = False
     png: bool = False
     json: bool = False
@@ -35,7 +35,7 @@ def main(args: Arguments):
         no_opinion_mode=True,
         candidates=Candidacy.ALL_CURRENT_CANDIDATES_WITH_ENOUGH_DATA,
         aggregation=AggregationMode.NO_AGGREGATION,
-        polling_organization=PollingOrganizations.IFOP,
+        polling_organization=PollingOrganizations.ALL,
     )
 
     # Compute the rank for each survey
@@ -69,17 +69,17 @@ def main(args: Arguments):
                 source=source,
                 date=date,
                 sponsor=sponsor,
-                show_no_opinion=False
+                show_no_opinion=True
             )
 
             if args.show:
                 fig.show()
             if args.html:
                 fig.write_html(f"{args.dest}/{survey}.html")
-            if args.png:
-                fig.write_image(f"{args.dest}/{survey}.png")
             if args.json:
                 fig.write_json(f"{args.dest}/{survey}.json")
+            if args.png:
+                fig.write_image(f"{args.dest}/{survey}.png")
 
     if args.ranking_plot:
         fig = ranking_plot(df, source=source, sponsor=sponsor)
