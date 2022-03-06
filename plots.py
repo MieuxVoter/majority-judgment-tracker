@@ -71,8 +71,9 @@ def plot_merit_profiles(
     if show_no_opinion:
         df["candidat_sans_opinion"] = None
         for ii, cell in enumerate(df["candidat"]):
-            df["candidat_sans_opinion"].iat[ii] = "<b>"+ cell +"</b>" + "     <br><i>(sans opinion " + str(
-                df["sans_opinion"].iloc[ii]) + "%)</i>     "
+            df["candidat_sans_opinion"].iat[ii] = (
+                "<b>" + cell + "</b>" + "     <br><i>(sans opinion " + str(df["sans_opinion"].iloc[ii]) + "%)</i>     "
+            )
         # compute the list sorted of candidat names to order y axis.
         candidat_list = list(df["candidat_sans_opinion"])
         rank_list = list(df["rang"] - 1)
