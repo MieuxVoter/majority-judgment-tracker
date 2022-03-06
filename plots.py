@@ -66,9 +66,9 @@ def plot_merit_profiles(
     # no back ground
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
 
+    # xticks and y ticks
     # Add sans opinion to y tick label # todo : it may be simplified !
-
-    if show_no_opinion:
+    if show_no_opinion and df["sans_opinion"].unique()[0] is not None:
         df["candidat_sans_opinion"] = None
         for ii, cell in enumerate(df["candidat"]):
             df["candidat_sans_opinion"].iat[ii] = (
@@ -84,7 +84,7 @@ def plot_merit_profiles(
     else:
         yticktext = ["<b>" + s + "</b>" + "     " for s in r_sorted_candidat_list]
 
-    # xticks
+    # xticks and y ticks
     fig.update_layout(
         xaxis=dict(
             range=[0, 100],
@@ -107,6 +107,8 @@ def plot_merit_profiles(
             categoryarray=r_sorted_candidat_list,
         ),  # space
     )
+
+    # Title and detailed
     date_str = ""
     source_str = ""
     sponsor_str = ""
@@ -117,7 +119,6 @@ def plot_merit_profiles(
     if sponsor is not None:
         sponsor_str = f"commanditaire: {sponsor}"
     title = "<b>Evaluation au jugement majoritaire</b> <br>" + f"<i>{date_str}{source_str}{sponsor_str}</i>"
-
     fig.update_layout(title=title, title_x=0.5)
 
     # font family
@@ -136,6 +137,9 @@ def plot_merit_profiles(
             yanchor="bottom",
         )
     )
+
+    # size of the figure
+    fig.update_layout(width=1000, height=600)
 
     return fig
 
@@ -232,8 +236,8 @@ def ranking_plot(
                 + temp_df["mention_majoritaire"].iloc[-1][0].upper()
                 + temp_df["mention_majoritaire"].iloc[-1][1:]
             )
-        if show_no_opinion:
-            extended_name_label += "<br><i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%) </i>"
+        if show_no_opinion and temp_df["sans_opinion"].iloc[-1] is not None:
+            extended_name_label += " <i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%)</i>"
 
         # last dot annotation
         annotations.append(
@@ -297,5 +301,7 @@ def ranking_plot(
             yanchor="bottom",
         )
     )
+
+    fig.update_layout(width=1200, height=800)
 
     return fig
