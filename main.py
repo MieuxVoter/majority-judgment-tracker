@@ -82,7 +82,7 @@ def main(args: Arguments):
                 fig.write_image(f"{args.dest}/{survey}.png")
 
     if args.ranking_plot:
-        fig = ranking_plot(df, source=source, sponsor=sponsor)
+        fig = ranking_plot(df, source=source, sponsor=sponsor, show_grade_area=True)
         if args.show:
             fig.show()
         if args.html:
