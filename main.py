@@ -34,12 +34,13 @@ def main(args: Arguments):
         args.csv,
         no_opinion_mode=True,
         candidates=Candidacy.ALL_CURRENT_CANDIDATES_WITH_ENOUGH_DATA,
-        aggregation=AggregationMode.FOUR_MENTIONS,
+        aggregation=AggregationMode.NO_AGGREGATION,
         polling_organization=PollingOrganizations.ALL,
     )
 
     # Compute the rank for each survey
     df["rang"] = None
+    df["mention_majoritaire"] = None
 
     surveys = get_list_survey(df)
 
@@ -68,6 +69,7 @@ def main(args: Arguments):
                 source=source,
                 date=date,
                 sponsor=sponsor,
+                show_no_opinion=True,
             )
 
             if args.show:
@@ -80,13 +82,15 @@ def main(args: Arguments):
                 fig.write_image(f"{args.dest}/{survey}.png")
 
     if args.ranking_plot:
-        fig = ranking_plot(df)
+        fig = ranking_plot(df, source=source, sponsor=sponsor)
         if args.show:
             fig.show()
         if args.html:
             fig.write_html(f"{args.dest}/ranking_plot.html")
         if args.png:
             fig.write_image(f"{args.dest}/ranking_plot.png")
+        if args.json:
+            fig.write_json(f"{args.dest}/ranking_plot.json")
 
 
 if __name__ == "__main__":
