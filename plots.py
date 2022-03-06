@@ -3,7 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from seaborn import color_palette
 from pandas import DataFrame
-from utils import get_intentions_colheaders, get_candidates
+from utils import get_intentions_colheaders, get_candidates, get_grades
 
 
 def plot_merit_profiles(
@@ -145,7 +145,12 @@ def plot_merit_profiles(
 
 
 def ranking_plot(
-    df, source: str = None, sponsor: str = None, show_best_grade: bool = True, show_no_opinion: bool = True
+    df,
+    source: str = None,
+    sponsor: str = None,
+    show_best_grade: bool = True,
+    show_no_opinion: bool = True,
+    show_grade_area: bool = True,
 ):
     # df = df[df["fin_enquete"] > "2021-12-01"]
 
@@ -168,8 +173,37 @@ def ranking_plot(
     }
 
     fig = go.Figure()
-
     df = df.sort_values(by="fin_enquete")
+
+    # Grade area
+    if show_grade_area:
+        grades = get_grades(df)
+        nb_grades = len(grades)
+        c_rgb = color_palette(palette="coolwarm", n_colors=nb_grades)
+        for g, c in zip(grades, c_rgb):
+            temp_df = df[df["mention_majoritaire"] == g]
+            if not temp_df.empty:
+                c_alpha = str(f"rgba({c[0]},{c[1]},{c[2]},0.2)")
+                # y_upper = get_all(df_results, d, "computation_time", "ci_up")
+                x_date = temp_df["fin_enquete"].unique().tolist()
+                y_upper = []
+                y_lower = []
+                for d in x_date:
+                    y_upper.append(temp_df[temp_df["fin_enquete"] == d]["rang"].min() - 0.5)
+                    y_lower.append(temp_df[temp_df["fin_enquete"] == d]["rang"].max() + 0.5)
+
+                fig.add_scatter(
+                    x=x_date + x_date[::-1],  # x, then x reversed
+                    y=y_upper + y_lower[::-1],  # upper, then lower reversed
+                    fill="toself",
+                    fillcolor=c_alpha,
+                    line=dict(color="rgba(255,255,255,0)"),
+                    hoverinfo="skip",
+                    showlegend=True,
+                    name=g,
+                    # legendgroup="grades",
+                )
+
     annotations = []
     for ii in get_candidates(df):
         print(ii)
@@ -182,6 +216,7 @@ def ranking_plot(
                 name=ii,
                 marker=dict(color=COLORS[ii]["couleur"]),
                 legendgroup=ii,
+                showlegend=False,
             )
         )
 
@@ -230,14 +265,17 @@ def ranking_plot(
             )
 
         extended_name_label = f"<b>{name_label}</b>"
-        if show_best_grade:
+        if show_best_grade and not show_grade_area:
             extended_name_label += (
                 "<br>"
                 + temp_df["mention_majoritaire"].iloc[-1][0].upper()
                 + temp_df["mention_majoritaire"].iloc[-1][1:]
             )
-        if show_no_opinion and temp_df["sans_opinion"].iloc[-1] is not None:
-            extended_name_label += " <i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%)</i>"
+            if show_no_opinion and temp_df["sans_opinion"].iloc[-1] is not None:
+                extended_name_label += " <i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%)</i>"
+        else:
+            if show_no_opinion and temp_df["sans_opinion"].iloc[-1] is not None:
+                extended_name_label += "<br><i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%)</i>"
 
         # last dot annotation
         annotations.append(
@@ -257,7 +295,7 @@ def ranking_plot(
     annotations.append(
         dict(
             x="2022-04-10",
-            y=1.5,
+            y=0.25,
             xanchor="left",
             xshift=10,
             yanchor="middle",
@@ -271,7 +309,7 @@ def ranking_plot(
         yaxis=dict(autorange="reversed", tick0=1, dtick=1, visible=False),
         annotations=annotations,
         plot_bgcolor="white",
-        showlegend=False,
+        showlegend=True,
     )
 
     source_str = ""
@@ -301,7 +339,14 @@ def ranking_plot(
             yanchor="bottom",
         )
     )
-
+    # SIZE OF THE FIGURE
     fig.update_layout(width=1200, height=800)
+
+    # Legend
+    fig.update_layout(
+        legend_title_text="Mentions majoritaires",
+        autosize=True,
+        legend=dict(orientation="h", xanchor="center", x=0.5, y=-0.05),  # 50 % of the figure width/
+    )
 
     return fig
