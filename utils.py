@@ -1,3 +1,4 @@
+import pandas as pd
 from pandas import DataFrame
 import numpy as np
 
@@ -31,3 +32,29 @@ def get_grades(df: DataFrame, nb_mentions: int = 7) -> list:
 
 def get_candidates(df: DataFrame):
     return df["candidat"].unique()
+
+
+def load_uninominal_ranks():
+    df_uninominal = pd.read_json(
+        "https://raw.githubusercontent.com/rozierguillaume/electracker/main/data/output/intentionsCandidatsMoyenneMobile14Jours.json"
+    )
+
+    # Create a new dataframe
+    df_rank_uninominal = pd.DataFrame(columns=["candidat", "fin_enquete", "valeur", "rang"])
+    for row in df_uninominal.iterrows():
+        dict_moy = row[1]["candidats"]["intentions_moy_14d"]
+        for d, v in zip(dict_moy["fin_enquete"], dict_moy["valeur"]):
+            row_to_add = dict(candidat=row[0], fin_enquete=d, valeur=v, rang=None)
+            df_dictionary = pd.DataFrame([row_to_add])
+            df_rank_uninominal = pd.concat([df_rank_uninominal, df_dictionary], ignore_index=True)
+
+    # Compute the rank of every candidates
+    df_rank_uninominal = df_rank_uninominal.sort_values(by=["fin_enquete", "valeur"], ascending=(True, False))
+    dates = df_rank_uninominal["fin_enquete"].unique()
+    for d in dates:
+        nb_candidates = len(df_rank_uninominal[df_rank_uninominal["fin_enquete"] == d])
+        # index_col = df_rank_uninominal.columns.get_loc("rang")
+        index_row = df_rank_uninominal.index[df_rank_uninominal["fin_enquete"] == d]
+        df_rank_uninominal.loc[index_row, "rang"] = [i + 1 for i in range(nb_candidates)]
+
+    return df_rank_uninominal
