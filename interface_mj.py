@@ -2,7 +2,43 @@ from libs.majority_judgment_2 import majority_judgment as mj
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
-from utils import get_intentions, get_grades
+from utils import get_intentions, get_grades, get_list_survey
+
+
+def apply_mj(
+    df: DataFrame,
+):
+    """
+    Reindexing candidates in the dataFrame following majority judgment rules
+
+    Parameters
+    ----------
+    df: DataFrame
+        contains all the data of vote / survey
+    Returns
+    -------
+    Return the DataFrame df with the rank within majority judgment rules for all studies
+    """
+
+    # Compute the rank for each survey
+    df["rang"] = None
+    df["mention_majoritaire"] = None
+
+    surveys = get_list_survey(df)
+
+    for survey in surveys:
+        print(survey)
+        # only the chosen survey
+        df_survey = df[df["id"] == survey].copy()
+
+        nb_grades = df_survey["nombre_mentions"].unique()[0]
+
+        df_with_rank = sort_candidates_mj(df_survey, nb_grades)
+
+        # refill the dataframe of surveys
+        df[df["id"] == survey] = df_with_rank
+
+    return df
 
 
 def sort_candidates_mj(

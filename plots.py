@@ -3,9 +3,11 @@ from pathlib import Path
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from seaborn import color_palette
 from pandas import DataFrame
 from utils import get_intentions_colheaders, get_candidates, get_grades, load_uninominal_ranks
+from misc.enums import PollingOrganizations, AggregationMode
 
 
 def plot_merit_profiles(
@@ -321,7 +323,7 @@ def ranking_plot(
         plot_bgcolor="white",
         showlegend=True,
     )
-    fig.show()
+
     source_str = ""
     sponsor_str = ""
     if source is not None:
@@ -335,7 +337,7 @@ def ranking_plot(
             + f"<i>{source_str}{sponsor_str}, dernier sondage: {date}.</i>"
     )
     fig.update_layout(title=title, title_x=0.5)
-    fig.show()
+    # fig.show()
     fig.add_layout_image(
         dict(
             source="https://raw.githubusercontent.com/MieuxVoter/majority-judgment-tracker/main/icons/logo.png",
@@ -351,14 +353,14 @@ def ranking_plot(
     )
     # SIZE OF THE FIGURE
     fig.update_layout(width=1200, height=800)
-    fig.show()
+    # fig.show()
     # Legend
     fig.update_layout(
         legend_title_text="Mentions majoritaires",
         autosize=True,
         legend=dict(orientation="h", xanchor="center", x=0.5, y=-0.05),  # 50 % of the figure width/
     )
-    fig.show()
+    # fig.show()
     return fig
 
 
@@ -377,7 +379,7 @@ def comparison_ranking_plot(
         show_best_grade=False,
         show_no_opinion=False,
         show_grade_area=show_grade_area,
-        breaks_in_names=False
+        breaks_in_names=False,
     )
 
     df_uninominal = load_uninominal_ranks()
@@ -394,12 +396,168 @@ def comparison_ranking_plot(
         fig=fig,
         breaks_in_names=False,
     )
-    #todo: add angles to names
-    #todo: split legends (JM and srutin uninominal)
-    #todo: title "comparison", "electraker"
-    #todo: annotations not displayed
-    #todo: rank in names
-    fig.add_hline(y=0,  line_dash="dot")
+    # todo: add angles to names
+    # todo: split legends (JM and srutin uninominal)
+    # todo: title "comparison", "electraker"
+    # todo: annotations not displayed
+    # todo: rank in names
+    fig.add_hline(y=0, line_dash="dot")
     fig.update_layout(width=1200, height=1000)
 
-    fig.show()
+    # fig.show()
+
+
+def plot_time_merit_profile(df, sponsor, source):
+    nb_grades = len(get_grades(df))
+    colors = color_palette(palette="coolwarm", n_colors=nb_grades)
+    color_dict = {f"intention_mention_{i + 1}": f"rgb{str(colors[i])}" for i in range(nb_grades)}
+
+    col_intention = get_intentions_colheaders(df, nb_grades)
+    y_cumsum = df[col_intention].to_numpy()
+
+    fig = go.Figure()
+    for g, col, cur_y in zip(get_grades(df), col_intention, y_cumsum.T):
+        fig.add_trace(
+            go.Scatter(
+                x=df["fin_enquete"],
+                y=cur_y,
+                hoverinfo="x+y",
+                mode="lines",
+                line=dict(width=0.5, color=color_dict[col]),
+                stackgroup="one",  # define stack group
+                name=g,
+            ),
+        )
+
+    for d in df["fin_enquete"]:
+        fig.add_vline(x=d, line_dash="dot", line_width=1, line_color="black", opacity=0.2)
+
+    fig.add_hline(
+        y=50,
+        line_dash="dot",
+        line_width=4,
+        line_color="black",
+        annotation_text="50 %",
+        annotation_position="bottom right",
+    )
+    fig.update_layout(
+        yaxis_range=(0, 100),
+        width=1200,
+        height=800,
+        legend_title_text="Mentions",
+        autosize=True,
+        legend=dict(orientation="h", xanchor="center", x=0.5, y=-0.05),  # 50 % of the figure width/
+        yaxis=dict(
+            tickfont_size=15,
+            title="Mentions (%)",  # candidat
+            automargin=True,
+        ),
+    )
+
+    # Title and detailed
+    date_str = ""
+    source_str = ""
+    sponsor_str = ""
+    date = df["fin_enquete"].max()
+    if source is not None:
+        source_str = f"source: {source}, "
+    if sponsor is not None:
+        sponsor_str = f"commanditaire: {sponsor}"
+    title = (
+            f"<b>Evolution des mentions au jugement majoritaire"
+            + f"<br> pour le candidat {df.candidat.unique().tolist()[0]}</b><br>"
+            + f"<i>{source_str}{sponsor_str}, dernier sondage: {date}.</i>"
+    )
+    fig.update_layout(title=title, title_x=0.5)
+
+    return fig
+
+
+def plot_time_merit_profile_all_polls(df, aggregation):
+    name_subplot = tuple([poll.value for poll in PollingOrganizations if poll != PollingOrganizations.ALL])
+    fig = make_subplots(rows=3, cols=1, subplot_titles=name_subplot)
+    count = 0
+    date_max = df["fin_enquete"].max()
+    date_min = df["fin_enquete"].min()
+
+    if aggregation == AggregationMode.NO_AGGREGATION:
+        group_legend = [i for i in name_subplot]
+    else:
+        group_legend = ["mentions" for _ in name_subplot]
+
+    for poll in PollingOrganizations:
+        if poll == PollingOrganizations.ALL:
+            continue
+        count += 1
+        show_legend = True if (count == 1 or aggregation == AggregationMode.NO_AGGREGATION) else False
+
+        df_poll = df[df["nom_institut"] == poll.value].copy() if poll != PollingOrganizations.ALL else df.copy()
+        if df_poll.empty:
+            continue
+        nb_grades = len(get_grades(df_poll))
+        colors = color_palette(palette="coolwarm", n_colors=nb_grades)
+        color_dict = {f"intention_mention_{i + 1}": f"rgb{str(colors[i])}" for i in range(nb_grades)}
+
+        col_intention = get_intentions_colheaders(df_poll, nb_grades)
+        y_cumsum = df_poll[col_intention].to_numpy()
+        for g, col, cur_y in zip(get_grades(df_poll), col_intention, y_cumsum.T):
+            fig.add_trace(
+                go.Scatter(
+                    x=df_poll["fin_enquete"],
+                    y=cur_y,
+                    hoverinfo="x+y",
+                    mode="lines",
+                    line=dict(width=0.5, color=color_dict[col]),
+                    stackgroup="one",  # define stack group
+                    name=g,
+                    showlegend=show_legend,
+                    legendgroup=group_legend[count - 1],
+                    legendgrouptitle_text=group_legend[count - 1],
+                ),
+                row=count,
+                col=1,
+            )
+
+        for d in df_poll["fin_enquete"]:
+            fig.add_vline(
+                x=d,
+                line_dash="dot",
+                line_width=1,
+                line_color="black",
+                opacity=0.2,
+                row=count,
+                col=1,
+            )
+
+        fig.add_hline(
+            y=50,
+            line_dash="dot",
+            line_width=2,
+            line_color="black",
+            annotation_text="50 %",
+            annotation_position="bottom right",
+            row=count,
+            col=1,
+        )
+        fig.update_yaxes(title_text="Mentions (%)", tickfont_size=15, range=[0, 100], row=count, col=1)
+        fig.update_xaxes(title_text="Mentions (%)", tickfont_size=15, range=[date_min, date_max], row=count, col=1)
+    fig.update_layout(
+        #     yaxis_range=(0, 100),
+        width=600,
+        height=800,
+        plot_bgcolor="white",
+        #     legend_title_text="Mentions",
+        #     autosize=True,
+        #     legend=dict(orientation="h", xanchor="center", x=0.5, y=-0.05),  # 50 % of the figure width/
+    )
+
+    # fig.show()
+    # Title and detailed
+    sponsor_str = ""
+    date = df["fin_enquete"].max()
+    title = (
+            f"<b>Evolution des mentions au jugement majoritaire"
+            + f"<br> pour le candidat {df.candidat.unique().tolist()[0]}</b>"
+    )
+    fig.update_layout(title=title, title_x=0.5)
+    return fig

@@ -26,7 +26,7 @@ class PollingOrganizations(Enum):
     Select how Institutes
     """
 
-    ALL = "None"
+    ALL = "Opinion Way, ELABE, IFOP"
     MIEUX_VOTER = "Opinion Way"
     ELABE = "ELABE"
     IFOP = "IFOP"
