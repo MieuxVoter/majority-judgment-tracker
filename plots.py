@@ -6,19 +6,19 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from seaborn import color_palette
 from pandas import DataFrame
-from utils import get_intentions_colheaders, get_candidates, get_grades, load_uninominal_ranks
+from utils import get_intentions_colheaders, get_candidates, get_grades, load_uninominal_ranks, rank2str
 from misc.enums import PollingOrganizations, AggregationMode
 
 
 def plot_merit_profiles(
-        df: DataFrame,
-        grades: list,
-        auto_text: bool = True,
-        font_size: int = 20,
-        date: str = None,
-        sponsor: str = None,
-        source: str = None,
-        show_no_opinion: bool = True,
+    df: DataFrame,
+    grades: list,
+    auto_text: bool = True,
+    font_size: int = 20,
+    date: str = None,
+    sponsor: str = None,
+    source: str = None,
+    show_no_opinion: bool = True,
 ):
     df = df.copy()
 
@@ -76,8 +76,7 @@ def plot_merit_profiles(
         df["candidat_sans_opinion"] = None
         for ii, cell in enumerate(df["candidat"]):
             df["candidat_sans_opinion"].iat[ii] = (
-                    "<b>" + cell + "</b>" + "     <br><i>(sans opinion " + str(
-                df["sans_opinion"].iloc[ii]) + "%)</i>     "
+                "<b>" + cell + "</b>" + "     <br><i>(sans opinion " + str(df["sans_opinion"].iloc[ii]) + "%)</i>     "
             )
         # compute the list sorted of candidat names to order y axis.
         candidat_list = list(df["candidat_sans_opinion"])
@@ -129,19 +128,7 @@ def plot_merit_profiles(
     # font family
     fig.update_layout(font_family="arial")
 
-    fig.add_layout_image(
-        dict(
-            source="https://raw.githubusercontent.com/MieuxVoter/majority-judgment-tracker/main/icons/logo.png",
-            xref="paper",
-            yref="paper",
-            x=0.8,
-            y=0.95,
-            sizex=0.2,
-            sizey=0.2,
-            xanchor="left",
-            yanchor="bottom",
-        )
-    )
+    fig = add_image_to_fig(fig, x=0.8, y=0.95, sizex=0.2, sizey=0.2)
 
     # size of the figure
     fig.update_layout(width=1000, height=600)
@@ -150,14 +137,18 @@ def plot_merit_profiles(
 
 
 def ranking_plot(
-        df,
-        source: str = None,
-        sponsor: str = None,
-        show_best_grade: bool = True,
-        show_no_opinion: bool = True,
-        show_grade_area: bool = True,
-        fig: go.Figure = None,
-        breaks_in_names: bool = True,
+    df,
+    source: str = None,
+    sponsor: str = None,
+    show_best_grade: bool = True,
+    show_rank: bool = True,
+    show_no_opinion: bool = True,
+    show_grade_area: bool = True,
+    breaks_in_names: bool = True,
+    fig: go.Figure = None,
+    annotations: dict =None,
+    row=None,
+    col=None,
 ):
     # df = df[df["fin_enquete"] > "2021-12-01"]
 
@@ -210,12 +201,13 @@ def ranking_plot(
                     hoverinfo="skip",
                     showlegend=True,
                     name=g,
+                    row=row,
+                    col=col,
                     # legendgroup="grades",
                 )
 
-    annotations = []
+    annotations = [] if annotations is None else annotations
     for ii in get_candidates(df):
-        print(ii)
         temp_df = df[df["candidat"] == ii]
         fig.add_trace(
             go.Scatter(
@@ -226,7 +218,9 @@ def ranking_plot(
                 marker=dict(color=COLORS[ii]["couleur"]),
                 legendgroup=ii,
                 showlegend=False,
-            )
+            ),
+            row=row,
+            col=col,
         )
 
         fig.add_trace(
@@ -238,7 +232,9 @@ def ranking_plot(
                 marker=dict(color=COLORS[ii]["couleur"]),
                 showlegend=False,
                 legendgroup=ii,
-            )
+            ),
+            row=row,
+            col=col,
         )
 
         fig.add_trace(
@@ -250,13 +246,18 @@ def ranking_plot(
                 marker=dict(color=COLORS[ii]["couleur"]),
                 legendgroup=ii,
                 showlegend=False,
-            )
+            ),
+            row=row,
+            col=col,
         )
 
+        # PREPARE ANNOTATIONS
         # name with break btw name and surname
+        xref = f"x{col}" if row is not None else None
+        yref = f"y{row}" if row is not None else None
         if breaks_in_names:
             idx_space = ii.find(" ")
-            name_label = ii[:idx_space] + "<br>" + ii[idx_space + 1:]
+            name_label = ii[:idx_space] + "<br>" + ii[idx_space + 1 :]
         else:
             name_label = ii
         size_annotations = 12
@@ -273,16 +274,23 @@ def ranking_plot(
                     text=f"<b>{name_label}</b>",
                     font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
                     showarrow=False,
+                    xref=xref,
+                    yref=yref,
                 )
             )
 
+        # Nice name label
         extended_name_label = f"<b>{name_label}</b>"
         if show_best_grade and not show_grade_area:
             extended_name_label += (
-                    "<br>"
-                    + temp_df["mention_majoritaire"].iloc[-1][0].upper()
-                    + temp_df["mention_majoritaire"].iloc[-1][1:]
+                "<br>"
+                + temp_df["mention_majoritaire"].iloc[-1][0].upper()
+                + temp_df["mention_majoritaire"].iloc[-1][1:]
             )
+            if show_no_opinion and temp_df["sans_opinion"].iloc[-1] is not None:
+                extended_name_label += " <i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%)</i>"
+        if show_rank:
+            extended_name_label += " " + rank2str(temp_df["rang"].iloc[-1])
             if show_no_opinion and temp_df["sans_opinion"].iloc[-1] is not None:
                 extended_name_label += " <i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%)</i>"
         else:
@@ -300,6 +308,8 @@ def ranking_plot(
                 text=extended_name_label,
                 font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
                 showarrow=False,
+                xref=xref,
+                yref=yref,
             ),
         )
 
@@ -314,6 +324,8 @@ def ranking_plot(
             text="1er Tour",
             font=dict(family="Arial", size=size_annotations),
             showarrow=False,
+            xref=xref,
+            yref=yref,
         )
     )
 
@@ -333,24 +345,11 @@ def ranking_plot(
 
     date = df["fin_enquete"].max()
     title = (
-            "<b>Classement des candidats à l'élection présidentielle 2022<br> au jugement majoritaire </b> <br>"
-            + f"<i>{source_str}{sponsor_str}, dernier sondage: {date}.</i>"
+        "<b>Classement des candidats à l'élection présidentielle 2022<br> au jugement majoritaire </b> <br>"
+        + f"<i>{source_str}{sponsor_str}, dernier sondage: {date}.</i>"
     )
     fig.update_layout(title=title, title_x=0.5)
-    # fig.show()
-    fig.add_layout_image(
-        dict(
-            source="https://raw.githubusercontent.com/MieuxVoter/majority-judgment-tracker/main/icons/logo.png",
-            xref="paper",
-            yref="paper",
-            x=0.05,
-            y=1.01,
-            sizex=0.15,
-            sizey=0.15,
-            xanchor="left",
-            yanchor="bottom",
-        )
-    )
+    fig = add_image_to_fig(fig, x=0.05, y=1.01, sizex=0.15, sizey=0.15)
     # SIZE OF THE FIGURE
     fig.update_layout(width=1200, height=800)
     # fig.show()
@@ -360,51 +359,69 @@ def ranking_plot(
         autosize=True,
         legend=dict(orientation="h", xanchor="center", x=0.5, y=-0.05),  # 50 % of the figure width/
     )
-    # fig.show()
-    return fig
+    return fig, annotations
 
 
 def comparison_ranking_plot(
-        df,
-        source: str = None,
-        sponsor: str = None,
-        show_best_grade: bool = True,
-        show_no_opinion: bool = True,
-        show_grade_area: bool = True,
+    df,
+    source: str = None,
+    sponsor: str = None,
+    show_best_grade: bool = True,
+    show_no_opinion: bool = True,
 ):
-    fig = ranking_plot(
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
+                    vertical_spacing=0, column_titles=("Jugement majoritaire", "Scrutin uninominal"))
+
+    fig, annotations = ranking_plot(
         df,
         source=source,
         sponsor=sponsor,
         show_best_grade=False,
+        show_rank=True,
         show_no_opinion=False,
-        show_grade_area=show_grade_area,
+        show_grade_area=False,
         breaks_in_names=False,
+        fig=fig,
+        row=1,
+        col=1,
     )
 
     df_uninominal = load_uninominal_ranks()
     df_uninominal = df_uninominal[df_uninominal["fin_enquete"] <= df["fin_enquete"].max()]
     df_uninominal = df_uninominal[df_uninominal["fin_enquete"] >= df["fin_enquete"].min()]
-    df_uninominal["rang"] = df_uninominal["rang"].__neg__()
-    fig = ranking_plot(
+    # df_uninominal["rang"] = df_uninominal["rang"].__neg__()
+    fig, annotations = ranking_plot(
         df_uninominal,
         source=None,
         sponsor=None,
         show_best_grade=False,
+        show_rank=True,
         show_no_opinion=False,
         show_grade_area=False,
-        fig=fig,
         breaks_in_names=False,
+        fig=fig,
+        annotations=annotations,
+        row=2,
+        col=1,
     )
-    # todo: add angles to names
-    # todo: split legends (JM and srutin uninominal)
-    # todo: title "comparison", "electraker"
-    # todo: annotations not displayed
-    # todo: rank in names
-    fig.add_hline(y=0, line_dash="dot")
-    fig.update_layout(width=1200, height=1000)
 
-    # fig.show()
+    fig.update_yaxes(row=2, col=1, visible=False, autorange="reversed")
+    fig.update_layout(width=1200, height=800)
+    source_str = ""
+    sponsor_str = ""
+    if source is not None:
+        source_str = f"source: {source}, "
+    if sponsor is not None:
+        sponsor_str = f"commanditaire: {sponsor}"
+
+    date = df["fin_enquete"].max()
+    title = (
+            "<b>Comparaison des classement des candidats à l'élection présidentielle 2022<br> au jugement majoritaire et au scrutin uninominal</b><br>"
+            + "<i>sources : mieux voter & nsppolls</i>"
+    )
+    fig.update_layout(title=title, title_x=0.5)
+
+    return fig
 
 
 def plot_time_merit_profile(df, sponsor, source):
@@ -464,9 +481,9 @@ def plot_time_merit_profile(df, sponsor, source):
     if sponsor is not None:
         sponsor_str = f"commanditaire: {sponsor}"
     title = (
-            f"<b>Evolution des mentions au jugement majoritaire"
-            + f"<br> pour le candidat {df.candidat.unique().tolist()[0]}</b><br>"
-            + f"<i>{source_str}{sponsor_str}, dernier sondage: {date}.</i>"
+        f"<b>Evolution des mentions au jugement majoritaire"
+        + f"<br> pour le candidat {df.candidat.unique().tolist()[0]}</b><br>"
+        + f"<i>{source_str}{sponsor_str}, dernier sondage: {date}.</i>"
     )
     fig.update_layout(title=title, title_x=0.5)
 
@@ -551,13 +568,40 @@ def plot_time_merit_profile_all_polls(df, aggregation):
         #     legend=dict(orientation="h", xanchor="center", x=0.5, y=-0.05),  # 50 % of the figure width/
     )
 
-    # fig.show()
     # Title and detailed
     sponsor_str = ""
     date = df["fin_enquete"].max()
     title = (
-            f"<b>Evolution des mentions au jugement majoritaire"
-            + f"<br> pour le candidat {df.candidat.unique().tolist()[0]}</b>"
+        f"<b>Evolution des mentions au jugement majoritaire"
+        + f"<br> pour le candidat {df.candidat.unique().tolist()[0]}</b>"
     )
     fig.update_layout(title=title, title_x=0.5)
     return fig
+
+
+def add_image_to_fig(fig, x: float, y: float, sizex: float, sizey: float):
+    fig.add_layout_image(
+        dict(
+            source="https://raw.githubusercontent.com/MieuxVoter/majority-judgment-tracker/main/icons/logo.png",
+            xref="paper",
+            yref="paper",
+            x=x,
+            y=y,
+            sizex=sizex,
+            sizey=sizey,
+            xanchor="left",
+            yanchor="bottom",
+        )
+    )
+    return fig
+
+
+def export_fig(fig, args, filename):
+    if args.show:
+        fig.show()
+    if args.html:
+        fig.write_html(f"{args.dest}/{filename}.html")
+    if args.png:
+        fig.write_image(f"{args.dest}/{filename}.png")
+    if args.json:
+        fig.write_json(f"{args.dest}/{filename}.json")

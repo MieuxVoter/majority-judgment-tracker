@@ -4,6 +4,7 @@ from plots import (
     comparison_ranking_plot,
     plot_time_merit_profile,
     plot_time_merit_profile_all_polls,
+    export_fig,
 )
 from utils import (
     get_list_survey,
@@ -36,15 +37,8 @@ def batch_merit_profile(df, args):
                 sponsor=sponsor,
                 show_no_opinion=True,
             )
-
-            if args.show:
-                fig.show()
-            if args.html:
-                fig.write_html(f"{args.dest}/{survey}.html")
-            if args.json:
-                fig.write_json(f"{args.dest}/{survey}.json")
-            if args.png:
-                fig.write_image(f"{args.dest}/{survey}.png")
+            filename = f"{survey}"
+            export_fig(fig, args, filename)
 
 
 def batch_ranking(df, args):
@@ -57,14 +51,8 @@ def batch_ranking(df, args):
 
         if args.ranking_plot:
             fig = ranking_plot(df_poll, source=source, sponsor=sponsor, show_grade_area=True)
-            if args.show:
-                fig.show()
-            if args.html:
-                fig.write_html(f"{args.dest}/ranking_plot_{label}.html")
-            if args.png:
-                fig.write_image(f"{args.dest}/ranking_plot_{label}.png")
-            if args.json:
-                fig.write_json(f"{args.dest}/ranking_plot_{label}.json")
+            filename = f"ranking_plot_{label}"
+            export_fig(fig, args, filename)
 
 
 def batch_time_merit_profile(df, args, aggregation):
@@ -85,24 +73,12 @@ def batch_time_merit_profile(df, args, aggregation):
                 continue
             if args.time_merit_profile:
                 fig = plot_time_merit_profile(temp_df, source=source, sponsor=sponsor)
-                if args.show:
-                    fig.show()
-                if args.html:
-                    fig.write_html(f"{args.dest}/time_merit_profile{aggregation_label}_{c}_{label}.html")
-                if args.png:
-                    fig.write_image(f"{args.dest}/time_merit_profile{aggregation_label}_{c}_{label}.png")
-                if args.json:
-                    fig.write_json(f"{args.dest}/time_merit_profile{aggregation_label}_{c}_{label}.json")
+                filename = f"time_merit_profile{aggregation_label}_{c}_{label}"
+                export_fig(fig, args, filename)
 
     for c in get_candidates(df):
         print(c)
         temp_df = df[df["candidat"] == c]
         fig = plot_time_merit_profile_all_polls(temp_df, aggregation)
-        if args.show:
-            fig.show()
-        if args.html:
-            fig.write_html(f"{args.dest}/time_merit_profile_comparison{aggregation_label}_{c}.html")
-        if args.png:
-            fig.write_image(f"{args.dest}/time_merit_profile_comparison{aggregation_label}_{c}.png")
-        if args.json:
-            fig.write_json(f"{args.dest}/time_merit_profile_comparison{aggregation_label}_{c}.json")
+        filename = f"time_merit_profile_comparison{aggregation_label}_{c}"
+        export_fig(fig, args, filename)

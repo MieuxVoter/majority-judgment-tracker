@@ -58,3 +58,12 @@ def load_uninominal_ranks():
         df_rank_uninominal.loc[index_row, "rang"] = [i + 1 for i in range(nb_candidates)]
 
     return df_rank_uninominal
+
+
+def rank2str(rank: int):
+    if rank == 1:
+        return f"{rank}er"
+    elif rank == 2:
+        return f"{rank}nd"
+    else:
+        return f"{rank}e"
