@@ -365,17 +365,14 @@ def ranking_plot(
 def comparison_ranking_plot(
     df,
     source: str = None,
-    sponsor: str = None,
-    show_best_grade: bool = True,
-    show_no_opinion: bool = True,
 ):
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
-                    vertical_spacing=0, column_titles=("Jugement majoritaire", "Scrutin uninominal"))
+                    vertical_spacing=0)
 
     fig, annotations = ranking_plot(
         df,
-        source=source,
-        sponsor=sponsor,
+        source=None,
+        sponsor=None,
         show_best_grade=False,
         show_rank=True,
         show_no_opinion=False,
@@ -405,19 +402,14 @@ def comparison_ranking_plot(
         col=1,
     )
 
-    fig.update_yaxes(row=2, col=1, visible=False, autorange="reversed")
+    fig.update_yaxes(row=2, col=1, visible=False, autorange="reversed", title="Scrutin uninominal")
     fig.update_layout(width=1200, height=800)
-    source_str = ""
-    sponsor_str = ""
-    if source is not None:
-        source_str = f"source: {source}, "
-    if sponsor is not None:
-        sponsor_str = f"commanditaire: {sponsor}"
-
-    date = df["fin_enquete"].max()
+    source_str = f"sources jugement majoritaire: {source}"
     title = (
-            "<b>Comparaison des classement des candidats à l'élection présidentielle 2022<br> au jugement majoritaire et au scrutin uninominal</b><br>"
-            + "<i>sources : mieux voter & nsppolls</i>"
+            "<b>Comparaison des classement des candidats à l'élection présidentielle 2022"
+            + "<br> au jugement majoritaire et au scrutin uninominal</b><br>"
+            + f"<i>{source_str}"
+            +"<br>sources scrutin uninominal: nsppolls.fr </i>"
     )
     fig.update_layout(title=title, title_x=0.5)
 
