@@ -133,3 +133,4 @@ dmypy.json
 .idea/
 jmajo.sqlite
 .~lock.*
+trackerapp/package-lock.json

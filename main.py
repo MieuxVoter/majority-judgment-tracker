@@ -1,15 +1,11 @@
 from pathlib import Path
-import pandas as pd
-import numpy as np
 import tap
-from plots import plot_merit_profiles, ranking_plot
-from utils import (
-    get_list_survey,
-    get_grades,
-)
-from interface_mj import sort_candidates_mj
+from batch_figure import batch_merit_profile, batch_ranking, batch_time_merit_profile, batch_comparison_ranking
+from plots import comparison_ranking_plot
+from interface_mj import apply_mj
 from load_surveys import load_surveys
 from misc.enums import Candidacy, AggregationMode, PollingOrganizations
+
 
 # todo: graphique classement en fonction des dates (avec mediane glissante)
 # todo: moyennes / ecart-type grades sur un profil de merite.
@@ -18,7 +14,9 @@ from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 class Arguments(tap.Tap):
     merit_profiles: bool = False
+    comparison_ranking_plot: bool = False
     ranking_plot: bool = False
+    time_merit_profile: bool = False
     show: bool = False
     html: bool = False
     png: bool = False
@@ -29,68 +27,36 @@ class Arguments(tap.Tap):
 
 def main(args: Arguments):
     args.dest.mkdir(exist_ok=True)
-
+    aggregation = AggregationMode.NO_AGGREGATION
     df = load_surveys(
         args.csv,
         no_opinion_mode=True,
         candidates=Candidacy.ALL_CURRENT_CANDIDATES_WITH_ENOUGH_DATA,
-        aggregation=AggregationMode.NO_AGGREGATION,
+        aggregation=aggregation,
         polling_organization=PollingOrganizations.ALL,
     )
 
-    # Compute the rank for each survey
-    df["rang"] = None
-    df["mention_majoritaire"] = None
+    # # apply mj on the whole dataframe for each survey
+    df = apply_mj(df)
+    # generate merit profile figures
+    batch_merit_profile(df, args)
+    # generate ranking figures
+    batch_ranking(df, args)
+    # generate comparison ranking figures
+    batch_comparison_ranking(df, args)
+    # generate time merit profile figures
+    batch_time_merit_profile(df, args, aggregation)
 
-    surveys = get_list_survey(df)
-
-    for survey in surveys:
-        print(survey)
-        # only the chosen survey
-        df_survey = df[df["id"] == survey].copy()
-
-        nb_grades = df_survey["nombre_mentions"].unique()[0]
-        grades = get_grades(df_survey, nb_grades)
-        first_idx = df_survey.first_valid_index()
-        source = df_survey["nom_institut"].loc[first_idx]
-        sponsor = df_survey["commanditaire"].loc[first_idx]
-        date = df_survey["fin_enquete"].loc[first_idx]
-
-        df_with_rank = sort_candidates_mj(df_survey, nb_grades)
-
-        # refill the dataframe of surveys
-        df[df["id"] == survey] = df_with_rank
-
-        if args.merit_profiles:
-            fig = plot_merit_profiles(
-                df=df_with_rank,
-                grades=grades,
-                auto_text=False,
-                source=source,
-                date=date,
-                sponsor=sponsor,
-                show_no_opinion=True,
-            )
-
-            if args.show:
-                fig.show()
-            if args.html:
-                fig.write_html(f"{args.dest}/{survey}.html")
-            if args.json:
-                fig.write_json(f"{args.dest}/{survey}.json")
-            if args.png:
-                fig.write_image(f"{args.dest}/{survey}.png")
-
-    if args.ranking_plot:
-        fig = ranking_plot(df, source=source, sponsor=sponsor, show_grade_area=True)
-        if args.show:
-            fig.show()
-        if args.html:
-            fig.write_html(f"{args.dest}/ranking_plot.html")
-        if args.png:
-            fig.write_image(f"{args.dest}/ranking_plot.png")
-        if args.json:
-            fig.write_json(f"{args.dest}/ranking_plot.json")
+    aggregation = AggregationMode.FOUR_MENTIONS
+    df = load_surveys(
+        args.csv,
+        no_opinion_mode=True,
+        candidates=Candidacy.ALL_CURRENT_CANDIDATES_WITH_ENOUGH_DATA,
+        aggregation=aggregation,
+        polling_organization=PollingOrganizations.ALL,
+    )
+    df = apply_mj(df)
+    batch_time_merit_profile(df, args, aggregation)
 
 
 if __name__ == "__main__":
