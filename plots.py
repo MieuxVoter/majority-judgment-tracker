@@ -146,11 +146,10 @@ def ranking_plot(
     show_grade_area: bool = True,
     breaks_in_names: bool = True,
     fig: go.Figure = None,
-    annotations: dict =None,
+    annotations: dict = None,
     row=None,
     col=None,
 ):
-    # df = df[df["fin_enquete"] > "2021-12-01"]
 
     COLORS = {
         "Marine Le Pen": {"couleur": "#04006e"},
@@ -184,7 +183,6 @@ def ranking_plot(
             temp_df = df[df["mention_majoritaire"] == g]
             if not temp_df.empty:
                 c_alpha = str(f"rgba({c[0]},{c[1]},{c[2]},0.2)")
-                # y_upper = get_all(df_results, d, "computation_time", "ci_up")
                 x_date = temp_df["fin_enquete"].unique().tolist()
                 y_upper = []
                 y_lower = []
@@ -203,7 +201,6 @@ def ranking_plot(
                     name=g,
                     row=row,
                     col=col,
-                    # legendgroup="grades",
                 )
 
     annotations = [] if annotations is None else annotations
@@ -298,20 +295,22 @@ def ranking_plot(
                 extended_name_label += "<br><i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%)</i>"
 
         # last dot annotation
-        annotations.append(
-            dict(
-                x=temp_df["fin_enquete"].iloc[-1],
-                y=temp_df["rang"].iloc[-1],
-                xanchor="left",
-                xshift=10,
-                yanchor="middle",
-                text=extended_name_label,
-                font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
-                showarrow=False,
-                xref=xref,
-                yref=yref,
-            ),
-        )
+        # only if the last dot is correspond to the last polls
+        if df["fin_enquete"].max() == temp_df["fin_enquete"].iloc[-1]:
+            annotations.append(
+                dict(
+                    x=temp_df["fin_enquete"].iloc[-1],
+                    y=temp_df["rang"].iloc[-1],
+                    xanchor="left",
+                    xshift=10,
+                    yanchor="middle",
+                    text=extended_name_label,
+                    font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
+                    showarrow=False,
+                    xref=xref,
+                    yref=yref,
+                ),
+            )
 
     fig.add_vline(x="2022-04-10", line_dash="dot")
     annotations.append(
@@ -366,8 +365,7 @@ def comparison_ranking_plot(
     df,
     source: str = None,
 ):
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
-                    vertical_spacing=0)
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0)
 
     fig, annotations = ranking_plot(
         df,
@@ -384,9 +382,8 @@ def comparison_ranking_plot(
     )
 
     df_uninominal = load_uninominal_ranks()
-    df_uninominal = df_uninominal[df_uninominal["fin_enquete"] <= df["fin_enquete"].max()]
     df_uninominal = df_uninominal[df_uninominal["fin_enquete"] >= df["fin_enquete"].min()]
-    # df_uninominal["rang"] = df_uninominal["rang"].__neg__()
+
     fig, annotations = ranking_plot(
         df_uninominal,
         source=None,
@@ -406,10 +403,10 @@ def comparison_ranking_plot(
     fig.update_layout(width=1200, height=800)
     source_str = f"sources jugement majoritaire: {source}"
     title = (
-            "<b>Comparaison des classement des candidats à l'élection présidentielle 2022"
-            + "<br> au jugement majoritaire et au scrutin uninominal</b><br>"
-            + f"<i>{source_str}"
-            +"<br>sources scrutin uninominal: nsppolls.fr </i>"
+        "<b>Comparaison des classement des candidats à l'élection présidentielle 2022"
+        + "<br> au jugement majoritaire et au scrutin uninominal</b><br>"
+        + f"<i>{source_str}"
+        + "<br>sources scrutin uninominal: nsppolls.fr </i>"
     )
     fig.update_layout(title=title, title_x=0.5)
 
@@ -464,7 +461,6 @@ def plot_time_merit_profile(df, sponsor, source):
     )
 
     # Title and detailed
-    date_str = ""
     source_str = ""
     sponsor_str = ""
     date = df["fin_enquete"].max()

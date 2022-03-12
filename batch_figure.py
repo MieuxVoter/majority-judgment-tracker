@@ -50,8 +50,22 @@ def batch_ranking(df, args):
         sponsor = df_poll["commanditaire"].loc[first_idx] if poll != PollingOrganizations.ALL else None
 
         if args.ranking_plot:
-            fig, annotations = ranking_plot(df_poll, source=source, sponsor=sponsor, show_grade_area=True, breaks_in_names=True, show_rank=False)
+            fig, annotations = ranking_plot(
+                df_poll, source=source, sponsor=sponsor, show_grade_area=True, breaks_in_names=True, show_rank=False
+            )
             filename = f"ranking_plot_{label}"
+            export_fig(fig, args, filename)
+
+
+def batch_comparison_ranking(df, args):
+    for poll in PollingOrganizations:
+        df_poll = df[df["nom_institut"] == poll.value].copy() if poll != PollingOrganizations.ALL else df.copy()
+        source = poll.value
+        label = source if poll != PollingOrganizations.ALL else poll.name
+
+        if args.comparison_ranking_plot:
+            fig = comparison_ranking_plot(df_poll, source=source)
+            filename = f"comparison_ranking_plot_{label}"
             export_fig(fig, args, filename)
 
 
@@ -79,6 +93,7 @@ def batch_time_merit_profile(df, args, aggregation):
     for c in get_candidates(df):
         print(c)
         temp_df = df[df["candidat"] == c]
-        fig = plot_time_merit_profile_all_polls(temp_df, aggregation)
-        filename = f"time_merit_profile_comparison{aggregation_label}_{c}"
-        export_fig(fig, args, filename)
+        if args.time_merit_profile:
+            fig = plot_time_merit_profile_all_polls(temp_df, aggregation)
+            filename = f"time_merit_profile_comparison{aggregation_label}_{c}"
+            export_fig(fig, args, filename)

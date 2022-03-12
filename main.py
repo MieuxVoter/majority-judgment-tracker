@@ -1,6 +1,6 @@
 from pathlib import Path
 import tap
-from batch_figure import batch_merit_profile, batch_ranking, batch_time_merit_profile
+from batch_figure import batch_merit_profile, batch_ranking, batch_time_merit_profile, batch_comparison_ranking
 from plots import comparison_ranking_plot
 from interface_mj import apply_mj
 from load_surveys import load_surveys
@@ -13,13 +13,14 @@ from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 
 class Arguments(tap.Tap):
-    merit_profiles: bool = True
-    ranking_plot: bool = True
-    time_merit_profile: bool = True
-    show: bool = False
-    html: bool = True
-    png: bool = True
-    json: bool = True
+    merit_profiles: bool = False
+    comparison_ranking_plot: bool = True
+    ranking_plot: bool = False
+    time_merit_profile: bool = False
+    show: bool = True
+    html: bool = False
+    png: bool = False
+    json: bool = False
     csv: Path = Path("presidentielle_jm.csv")
     dest: Path = Path("figs")
 
@@ -32,20 +33,20 @@ def main(args: Arguments):
         no_opinion_mode=True,
         candidates=Candidacy.ALL_CURRENT_CANDIDATES_WITH_ENOUGH_DATA,
         aggregation=aggregation,
-        polling_organization=PollingOrganizations.ELABE,
+        polling_organization=PollingOrganizations.ALL,
     )
 
     # # apply mj on the whole dataframe for each survey
     df = apply_mj(df)
-    fig = comparison_ranking_plot(df)
-    fig.show()
-    # # generate merit profile figures
-    # batch_merit_profile(df, args)
-    # # generate ranking figures
-    # batch_ranking(df, args)
-    # # generate time merit profile figures
-    # batch_time_merit_profile(df, args, aggregation)
-    # fig = comparison_ranking_plot(df, source=source, sponsor=sponsor, show_grade_area=True)
+    # generate merit profile figures
+    batch_merit_profile(df, args)
+    # generate ranking figures
+    batch_ranking(df, args)
+    # generate comparison ranking figures
+    batch_comparison_ranking(df, args)
+    # generate time merit profile figures
+    batch_time_merit_profile(df, args, aggregation)
+
     aggregation = AggregationMode.FOUR_MENTIONS
     df = load_surveys(
         args.csv,
@@ -55,10 +56,7 @@ def main(args: Arguments):
         polling_organization=PollingOrganizations.ALL,
     )
     df = apply_mj(df)
-    # batch_time_merit_profile(df, args, aggregation)
-    # df = df[df["candidat"] == "Emmanuel Macron"]
-    fig = comparison_ranking_plot(df)
-    fig.show()
+    batch_time_merit_profile(df, args, aggregation)
 
 
 if __name__ == "__main__":

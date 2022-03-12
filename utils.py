@@ -48,6 +48,19 @@ def load_uninominal_ranks():
             df_dictionary = pd.DataFrame([row_to_add])
             df_rank_uninominal = pd.concat([df_rank_uninominal, df_dictionary], ignore_index=True)
 
+    # Fill date without value for some candidates
+    for c in df_rank_uninominal["candidat"].unique():
+        temp_df = df_rank_uninominal[df_rank_uninominal["candidat"] == c]
+        date_min = temp_df["fin_enquete"].min()
+        date_max = temp_df["fin_enquete"].max()
+        for d in df_rank_uninominal["fin_enquete"].unique():
+            if (d > date_min) and (d < date_max) and temp_df[temp_df["fin_enquete"] == d].empty:
+                idx = temp_df["fin_enquete"].searchsorted(d)
+                v = temp_df["valeur"].iloc[idx - 1]
+                row_to_add = dict(candidat=c, fin_enquete=d, valeur=v, rang=None)
+                df_dictionary = pd.DataFrame([row_to_add])
+                df_rank_uninominal = pd.concat([df_rank_uninominal, df_dictionary], ignore_index=True)
+
     # Compute the rank of every candidates
     df_rank_uninominal = df_rank_uninominal.sort_values(by=["fin_enquete", "valeur"], ascending=(True, False))
     dates = df_rank_uninominal["fin_enquete"].unique()
