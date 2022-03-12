@@ -50,7 +50,7 @@ def batch_ranking(df, args):
         sponsor = df_poll["commanditaire"].loc[first_idx] if poll != PollingOrganizations.ALL else None
 
         if args.ranking_plot:
-            fig = ranking_plot(df_poll, source=source, sponsor=sponsor, show_grade_area=True)
+            fig, annotations = ranking_plot(df_poll, source=source, sponsor=sponsor, show_grade_area=True, breaks_in_names=True, show_rank=False)
             filename = f"ranking_plot_{label}"
             export_fig(fig, args, filename)
 
