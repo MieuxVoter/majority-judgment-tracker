@@ -14,10 +14,10 @@ from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 class Arguments(tap.Tap):
     merit_profiles: bool = False
-    comparison_ranking_plot: bool = True
+    comparison_ranking_plot: bool = False
     ranking_plot: bool = False
     time_merit_profile: bool = False
-    show: bool = True
+    show: bool = False
     html: bool = False
     png: bool = False
     json: bool = False

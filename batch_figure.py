@@ -38,6 +38,7 @@ def batch_merit_profile(df, args):
                 show_no_opinion=True,
             )
             filename = f"{survey}"
+            print(filename)
             export_fig(fig, args, filename)
 
 
@@ -54,6 +55,7 @@ def batch_ranking(df, args):
                 df_poll, source=source, sponsor=sponsor, show_grade_area=True, breaks_in_names=True, show_rank=False
             )
             filename = f"ranking_plot_{label}"
+            print(filename)
             export_fig(fig, args, filename)
 
 
@@ -66,6 +68,7 @@ def batch_comparison_ranking(df, args):
         if args.comparison_ranking_plot:
             fig = comparison_ranking_plot(df_poll, source=source)
             filename = f"comparison_ranking_plot_{label}"
+            print(filename)
             export_fig(fig, args, filename)
 
 
@@ -81,19 +84,19 @@ def batch_time_merit_profile(df, args, aggregation):
         aggregation_label = f"_{aggregation.name}" if aggregation != AggregationMode.NO_AGGREGATION else ""
 
         for c in get_candidates(df):
-            print(c)
             temp_df = df_poll[df_poll["candidat"] == c]
             if temp_df.empty:
                 continue
             if args.time_merit_profile:
                 fig = plot_time_merit_profile(temp_df, source=source, sponsor=sponsor)
                 filename = f"time_merit_profile{aggregation_label}_{c}_{label}"
+                print(filename)
                 export_fig(fig, args, filename)
 
     for c in get_candidates(df):
-        print(c)
         temp_df = df[df["candidat"] == c]
         if args.time_merit_profile:
             fig = plot_time_merit_profile_all_polls(temp_df, aggregation)
             filename = f"time_merit_profile_comparison{aggregation_label}_{c}"
+            print(filename)
             export_fig(fig, args, filename)
