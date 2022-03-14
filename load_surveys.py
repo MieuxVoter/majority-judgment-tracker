@@ -9,11 +9,8 @@ from pathlib import Path
 import pandas as pd
 from pandas import DataFrame
 import numpy as np
-import sqlite3
-import os
 
-from utils import get_list_survey
-
+from utils import get_list_survey, get_intentions_colheaders
 from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 
@@ -147,6 +144,7 @@ def load_surveys(
     candidates: Candidacy = None,
     aggregation: AggregationMode = None,
     polling_organization: PollingOrganizations = None,
+    rolling_data: bool = False,
 ):
     """
     normalize file
@@ -163,6 +161,8 @@ def load_surveys(
         how to manage Aggregation of several grades
     polling_organization: PollingOrganizations
         select polling organization
+    rolling_data: bool
+        if rolling grade intentions over 14d to smooth the data
     Returns
     -------
     Return the DataFrame df with all surveys inside
@@ -182,7 +182,7 @@ def load_surveys(
 
     # remove undecided
     if no_opinion_mode:
-        df_surveys["sans_opinion"] = None
+        df_surveys["sans_opinion"] = np.nan
 
         df_undecided_grades = df_standardisation[df_standardisation["to_4_mentions"] == "sans opinion"]
         surveys = get_list_survey(df_surveys)
@@ -225,4 +225,75 @@ def load_surveys(
             # refill the dataframe of surveys
             df_surveys[df_surveys["id"] == survey] = df_survey
 
+    if rolling_data:
+        df_surveys = rolling_surveys(df_surveys, no_opinion_mode)
+
     return df_surveys
+
+
+def rolling_surveys(df: DataFrame, no_opinion_mode: bool = True):
+    """
+    normalize file
+
+    Parameters
+    ----------
+    df: DataFrame
+        dataframe of the survey
+    no_opinion_mode: bool
+        if we removed undecided votes
+    Returns
+    -------
+    Return the DataFrame df with extra columns which store the rolling mean and std data
+    """
+    surveys = get_list_survey(df)
+    # verify if the number of grade is the same for each survey
+    nb_grades = []
+    for s in surveys:
+        # only the chosen survey
+        df_survey = df[df["id"] == s].copy()
+        nb_grades.append(df_survey["nombre_mentions"].unique()[0])
+        if len(list(set(nb_grades))) != 1:
+            raise RuntimeError(
+                "The number of grade should be the same for all surveys. Please aggregate grades"
+                "or use data from the same kind of polls"
+            )
+    # new cols to store the data (rolling mean, std)
+    intentions_col = get_intentions_colheaders(df)
+    intentions_col_std = [f"{col}_std" for col in intentions_col]
+    intentions_col_roll = [f"{col}_roll" for col in intentions_col]
+    sans_opinion_roll = "sans_opinion_roll" if no_opinion_mode else None
+    df[intentions_col_std] = None
+    df[intentions_col_roll] = None
+    df[sans_opinion_roll] = np.nan
+    df = df.sort_values(by="fin_enquete")
+    # mean by candidates
+    for c in df["candidat"].unique():
+        df_temp = df[df["candidat"] == c]
+        df_temp.index = pd.to_datetime(df_temp["fin_enquete"])
+        df_temp = df_temp.sort_index()
+        # Resample("1d").mean() helps to handle multiple surveys on the same dates
+        df_temp[intentions_col_roll] = (
+            df_temp[intentions_col].resample("1d").mean().rolling("14d", min_periods=1, center=True).mean()
+        )
+        df_temp[intentions_col_std] = (
+            df_temp[intentions_col].resample("1d").mean().rolling("14d", min_periods=1, center=True).std()
+        )  # todo: std should be handled with with mean() over the same dates
+        # (std is underestimated if we have to values for the same date)
+        if no_opinion_mode:
+            df_temp[sans_opinion_roll] = (
+                df_temp["sans_opinion"].resample("1d").mean().rolling("14d", min_periods=1, center=True).mean()
+            )
+
+        if not df_temp[(df_temp[intentions_col_roll].sum(axis=1) - 100).round(3) != 0].empty:
+            raise RuntimeError("Rolling mean conducted to less than 100 sum of intentions of vote")
+
+        # refilling the original dataframe
+        df_temp.index = df[df["candidat"] == c].index
+        row_indexer = df[df["candidat"] == c].index
+        for col, col_std in zip(intentions_col_roll, intentions_col_std):
+            df.loc[row_indexer, col] = df_temp.loc[:, col]
+            df.loc[row_indexer, col_std] = df_temp.loc[:, col]
+        if no_opinion_mode:
+            df.loc[row_indexer, sans_opinion_roll] = df_temp.loc[:, sans_opinion_roll]
+
+    return df
