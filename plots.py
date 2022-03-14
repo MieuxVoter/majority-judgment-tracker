@@ -5,8 +5,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from seaborn import color_palette
+import numpy as np
 from pandas import DataFrame
-from utils import get_intentions_colheaders, get_candidates, get_grades, load_uninominal_ranks, rank2str
+from load_uninomial_surveys import load_uninominal_ranks
+from utils import get_intentions_colheaders, get_candidates, get_grades, rank2str
 from misc.enums import PollingOrganizations, AggregationMode
 
 
@@ -113,15 +115,11 @@ def plot_merit_profiles(
     )
 
     # Title and detailed
-    date_str = ""
-    source_str = ""
-    sponsor_str = ""
-    if date is not None:
-        date_str = f"date: {date}, "
-    if source is not None:
-        source_str = f"source: {source}, "
-    if sponsor is not None:
-        sponsor_str = f"commanditaire: {sponsor}"
+
+    date_str = f"date: {date}, " if date is not None else ""
+    source_str = f"source: {source}" if source is not None else ""
+    source_str += ", " if sponsor is not None else ""
+    sponsor_str = f"commanditaire: {sponsor}" if sponsor is not None else ""
     title = "<b>Evaluation au jugement majoritaire</b> <br>" + f"<i>{date_str}{source_str}{sponsor_str}</i>"
     fig.update_layout(title=title, title_x=0.5)
 
@@ -138,6 +136,7 @@ def plot_merit_profiles(
 
 def ranking_plot(
     df,
+    on_rolling_data=False,
     source: str = None,
     sponsor: str = None,
     show_best_grade: bool = True,
@@ -150,25 +149,13 @@ def ranking_plot(
     row=None,
     col=None,
 ):
+    if on_rolling_data:
+        if "rang_glissant" not in df.columns:
+            raise ValueError("This dataframe hasn't been smoothed with rolling average.")
+        df["rang"] = df["rang_glissant"]
+        df["mention_majoritaire"] = df["mention_majoritaire_glissante"]
 
-    COLORS = {
-        "Marine Le Pen": {"couleur": "#04006e"},
-        "Emmanuel Macron": {"couleur": "#0095eb"},
-        "Yannick Jadot": {"couleur": "#0bb029"},
-        "Jean-Luc Mélenchon": {"couleur": "#de001e"},
-        "Arnaud Montebourg": {"couleur": "#940014"},
-        "Fabien Roussel": {"couleur": "#940014"},
-        "Valérie Pécresse": {"couleur": "#0242e3"},
-        "Anne Hidalgo": {"couleur": "#b339a4"},
-        "Christiane Taubira": {"couleur": "#c7a71a"},
-        "Eric Zemmour": {"couleur": "#010038"},
-        "Nathalie Arthaud": {"couleur": "#8f0007"},
-        "Jean Lassalle": {"couleur": "#c96800"},
-        "Philippe Poutou": {"couleur": "#82001a"},
-        "François Asselineau": {"couleur": "#12004f"},
-        "Nicolas Dupont-Aignan": {"couleur": "#3a84c4"},
-    }
-
+    COLORS = load_colors()
     if fig is None:
         fig = go.Figure()
 
@@ -335,12 +322,9 @@ def ranking_plot(
         showlegend=True,
     )
 
-    source_str = ""
-    sponsor_str = ""
-    if source is not None:
-        source_str = f"source: {source}, "
-    if sponsor is not None:
-        sponsor_str = f"commanditaire: {sponsor}"
+    source_str = f"source: {source}" if source is not None else ""
+    source_str += ", " if sponsor is not None else ""
+    sponsor_str = f"commanditaire: {sponsor}" if sponsor is not None else ""
 
     date = df["fin_enquete"].max()
     title = (
@@ -413,16 +397,25 @@ def comparison_ranking_plot(
     return fig
 
 
-def plot_time_merit_profile(df, sponsor, source):
+def plot_time_merit_profile(
+    df: DataFrame, sponsor: str = None, source: str = None, show_no_opinion: bool = False, on_rolling_data: bool = False
+):
+    suffix = "_roll" if on_rolling_data else ""
+
     nb_grades = len(get_grades(df))
     colors = color_palette(palette="coolwarm", n_colors=nb_grades)
-    color_dict = {f"intention_mention_{i + 1}": f"rgb{str(colors[i])}" for i in range(nb_grades)}
+    col_intentions = [f"intention_mention_{i}{suffix}" for i in range(1, nb_grades + 1)]
+    color_dict = {col: f"rgb{str(colors[i])}" for i, col in enumerate(col_intentions)}
 
-    col_intention = get_intentions_colheaders(df, nb_grades)
-    y_cumsum = df[col_intention].to_numpy()
+    y_cumsum = df[col_intentions].to_numpy()
 
     fig = go.Figure()
-    for g, col, cur_y in zip(get_grades(df), col_intention, y_cumsum.T):
+    grade_list = get_grades(df)
+    grade_list.reverse()
+    col_intentions.reverse()
+    y_cumsum = np.flip(y_cumsum.T, axis=0)
+
+    for g, col, cur_y in zip(grade_list, col_intentions, y_cumsum):
         fig.add_trace(
             go.Scatter(
                 x=df["fin_enquete"],
@@ -435,13 +428,15 @@ def plot_time_merit_profile(df, sponsor, source):
             ),
         )
 
+    fig = add_no_opinion_time_merit_profile(fig, df, suffix)
+
     for d in df["fin_enquete"]:
         fig.add_vline(x=d, line_dash="dot", line_width=1, line_color="black", opacity=0.2)
 
     fig.add_hline(
         y=50,
-        line_dash="dot",
-        line_width=4,
+        line_dash="solid",
+        line_width=3,
         line_color="black",
         annotation_text="50 %",
         annotation_position="bottom right",
@@ -458,16 +453,14 @@ def plot_time_merit_profile(df, sponsor, source):
             title="Mentions (%)",  # candidat
             automargin=True,
         ),
+        plot_bgcolor="white",
     )
 
     # Title and detailed
-    source_str = ""
-    sponsor_str = ""
     date = df["fin_enquete"].max()
-    if source is not None:
-        source_str = f"source: {source}, "
-    if sponsor is not None:
-        sponsor_str = f"commanditaire: {sponsor}"
+    source_str = f"source: {source}" if source is not None else ""
+    source_str += ", " if sponsor is not None else ""
+    sponsor_str = f"commanditaire: {sponsor}" if sponsor is not None else ""
     title = (
         f"<b>Evolution des mentions au jugement majoritaire"
         + f"<br> pour le candidat {df.candidat.unique().tolist()[0]}</b><br>"
@@ -478,8 +471,9 @@ def plot_time_merit_profile(df, sponsor, source):
     return fig
 
 
-def plot_time_merit_profile_all_polls(df, aggregation):
+def plot_time_merit_profile_all_polls(df, aggregation, on_rolling_data: bool = False):
     name_subplot = tuple([poll.value for poll in PollingOrganizations if poll != PollingOrganizations.ALL])
+    suffix = "_roll" if on_rolling_data else ""
     fig = make_subplots(rows=3, cols=1, subplot_titles=name_subplot)
     count = 0
     date_max = df["fin_enquete"].max()
@@ -522,6 +516,10 @@ def plot_time_merit_profile_all_polls(df, aggregation):
                 row=count,
                 col=1,
             )
+        show_legend_no_opinion = True if count == 1 else False
+        fig = add_no_opinion_time_merit_profile(
+            fig, df_poll, suffix, row=count, col=1, show_legend=show_legend_no_opinion
+        )
 
         for d in df_poll["fin_enquete"]:
             fig.add_vline(
@@ -547,17 +545,12 @@ def plot_time_merit_profile_all_polls(df, aggregation):
         fig.update_yaxes(title_text="Mentions (%)", tickfont_size=15, range=[0, 100], row=count, col=1)
         fig.update_xaxes(title_text="Mentions (%)", tickfont_size=15, range=[date_min, date_max], row=count, col=1)
     fig.update_layout(
-        #     yaxis_range=(0, 100),
         width=600,
         height=800,
         plot_bgcolor="white",
-        #     legend_title_text="Mentions",
-        #     autosize=True,
-        #     legend=dict(orientation="h", xanchor="center", x=0.5, y=-0.05),  # 50 % of the figure width/
     )
 
     # Title and detailed
-    sponsor_str = ""
     date = df["fin_enquete"].max()
     title = (
         f"<b>Evolution des mentions au jugement majoritaire"
@@ -593,3 +586,62 @@ def export_fig(fig, args, filename):
         fig.write_image(f"{args.dest}/{filename}.png")
     if args.json:
         fig.write_json(f"{args.dest}/{filename}.json")
+
+
+def load_colors():
+    return {
+        "Marine Le Pen": {"couleur": "#04006e"},
+        "Emmanuel Macron": {"couleur": "#0095eb"},
+        "Yannick Jadot": {"couleur": "#0bb029"},
+        "Jean-Luc Mélenchon": {"couleur": "#de001e"},
+        "Arnaud Montebourg": {"couleur": "#940014"},
+        "Fabien Roussel": {"couleur": "#940014"},
+        "Valérie Pécresse": {"couleur": "#0242e3"},
+        "Anne Hidalgo": {"couleur": "#b339a4"},
+        "Christiane Taubira": {"couleur": "#c7a71a"},
+        "Eric Zemmour": {"couleur": "#010038"},
+        "Nathalie Arthaud": {"couleur": "#8f0007"},
+        "Jean Lassalle": {"couleur": "#c96800"},
+        "Philippe Poutou": {"couleur": "#82001a"},
+        "François Asselineau": {"couleur": "#12004f"},
+        "Nicolas Dupont-Aignan": {"couleur": "#3a84c4"},
+    }
+
+
+def add_no_opinion_time_merit_profile(
+    fig: go.Figure, df: DataFrame, suffix: str, show_legend: bool = True, row: int = None, col: int = None
+):
+    sub_df = df[["fin_enquete",f"sans_opinion{suffix}"]]
+    sub_df = sub_df.sort_values(by="fin_enquete").dropna()
+    # sub_df = sub_df[df[f"sans_opinion{suffix}"] is not None]
+    fig.add_trace(
+        go.Scatter(
+            x=sub_df["fin_enquete"],
+            y=sub_df[f"sans_opinion{suffix}"] / 2 + 50,
+            hoverinfo="x+y",
+            mode="lines",
+            line=dict(width=2, color="black", dash="dash"),
+            name="sans opinion",
+            opacity=0.5,
+            showlegend=show_legend,
+            legendgroup="sans opinion",
+        ),
+        row=row,
+        col=col,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=sub_df["fin_enquete"],
+            y=50 - sub_df[f"sans_opinion{suffix}"] / 2,
+            hoverinfo="x+y",
+            mode="lines",
+            line=dict(width=2, color="black", dash="dash"),
+            name="sans opinion",
+            opacity=0.5,
+            showlegend=False,
+            legendgroup="sans opinion",
+        ),
+        row=row,
+        col=col,
+    )
+    return fig

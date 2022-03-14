@@ -72,8 +72,8 @@ def batch_comparison_ranking(df, args):
             export_fig(fig, args, filename)
 
 
-def batch_time_merit_profile(df, args, aggregation):
-    for poll in PollingOrganizations:
+def batch_time_merit_profile(df, args, aggregation, polls: PollingOrganizations = PollingOrganizations):
+    for poll in polls:
         if poll == PollingOrganizations.ALL and aggregation == AggregationMode.NO_AGGREGATION:
             continue
         df_poll = df[df["nom_institut"] == poll.value].copy() if poll != PollingOrganizations.ALL else df.copy()
@@ -98,5 +98,29 @@ def batch_time_merit_profile(df, args, aggregation):
         if args.time_merit_profile:
             fig = plot_time_merit_profile_all_polls(temp_df, aggregation)
             filename = f"time_merit_profile_comparison{aggregation_label}_{c}"
+            print(filename)
+            export_fig(fig, args, filename)
+
+
+def batch_time_merit_profile_all(df, args, aggregation, on_rolling_data: bool = False):
+    if aggregation == AggregationMode.NO_AGGREGATION:
+        raise ValueError("Need to have an AggregationMode such as FOUR_MENTION to make it work.")
+
+    poll = PollingOrganizations.ALL
+    df_poll = df
+    first_idx = df_poll.first_valid_index()
+    source = poll.value
+    label = poll.name
+    sponsor = None
+    aggregation_label = f"_{aggregation.name}"
+    roll = "_roll" if on_rolling_data else ""
+
+    for c in get_candidates(df):
+        temp_df = df_poll[df_poll["candidat"] == c]
+        if temp_df.empty:
+            continue
+        if args.time_merit_profile:
+            fig = plot_time_merit_profile(temp_df, source=source, sponsor=sponsor, on_rolling_data=on_rolling_data)
+            filename = f"time_merit_profile{aggregation_label}_{c}_{label}{roll}"
             print(filename)
             export_fig(fig, args, filename)
