@@ -1,6 +1,4 @@
-import pandas as pd
 from pandas import DataFrame
-import numpy as np
 
 
 def get_list_survey(df: DataFrame):

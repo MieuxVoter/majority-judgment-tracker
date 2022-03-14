@@ -9,11 +9,8 @@ from pathlib import Path
 import pandas as pd
 from pandas import DataFrame
 import numpy as np
-import sqlite3
-import os
 
 from utils import get_list_survey, get_intentions_colheaders
-
 from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 

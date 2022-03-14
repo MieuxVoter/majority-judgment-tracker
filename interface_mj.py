@@ -1,9 +1,8 @@
 from libs.majority_judgment_2 import majority_judgment as mj
 import numpy as np
-import pandas as pd
 from pandas import DataFrame
-from utils import get_intentions, get_grades, get_list_survey, get_intentions_colheaders
-import matplotlib.pyplot as plt
+from utils import get_grades, get_list_survey
+from typing import List
 
 
 def apply_mj(
@@ -51,7 +50,7 @@ def sort_candidates_mj(
     nb_grades: int,
     col_rank: str = None,
     col_median_grade: str = None,
-    col_intentions: list[str] = None,
+    col_intentions: List[str] = None,
 ):
     """
     Reindexing candidates in the dataFrame following majority judgment rules

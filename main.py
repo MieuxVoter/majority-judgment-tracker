@@ -16,13 +16,13 @@ from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 
 class Arguments(tap.Tap):
-    merit_profiles: bool = False
+    merit_profiles: bool = True
     comparison_ranking_plot: bool = False
-    ranking_plot: bool = True
-    time_merit_profile: bool = True
-    show: bool = True
+    ranking_plot: bool = False
+    time_merit_profile: bool = False
+    show: bool = False
     html: bool = False
-    png: bool = True
+    png: bool = False
     json: bool = False
     csv: Path = Path("presidentielle_jm.csv")
     dest: Path = Path("figs")
