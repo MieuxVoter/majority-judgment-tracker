@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-index=trackerapp/src/graphs/index.js
-graphs=$(ls trackerapp/src/graphs | grep json)
+index=trackerapp/data/graphs/index.js
+graphs=$(ls trackerapp/data/graphs | grep json)
 
 [ -f $index ] && rm $index
 
