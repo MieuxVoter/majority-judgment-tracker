@@ -71,7 +71,7 @@ def plot_merit_profiles(
 
     # xticks and y ticks
     # Add sans opinion to y tick label # todo : it may be simplified !
-    if show_no_opinion and df["sans_opinion"].unique()[0] is not None:
+    if show_no_opinion and not np.isnan(df["sans_opinion"].unique()[0]):
         df["candidat_sans_opinion"] = None
         for ii, cell in enumerate(df["candidat"]):
             df["candidat_sans_opinion"].iat[ii] = (
@@ -123,7 +123,7 @@ def plot_merit_profiles(
     # font family
     fig.update_layout(font_family="arial")
 
-    fig = add_image_to_fig(fig, x=0.8, y=0.95, sizex=0.2, sizey=0.2)
+    fig = add_image_to_fig(fig, x=0.9, y=1.01, sizex=0.15, sizey=0.15)
 
     # size of the figure
     fig.update_layout(width=1000, height=600)
@@ -329,7 +329,7 @@ def ranking_plot(
         + f"<i>{source_str}{sponsor_str}, dernier sondage: {date}.</i>"
     )
     fig.update_layout(title=title, title_x=0.5)
-    fig = add_image_to_fig(fig, x=0.05, y=1.01, sizex=0.15, sizey=0.15)
+    fig = add_image_to_fig(fig, x=1.00, y=1.05, sizex=0.10, sizey=0.10, xanchor="right")
     # SIZE OF THE FIGURE
     fig.update_layout(width=1200, height=800)
     # fig.show()
@@ -464,6 +464,7 @@ def plot_time_merit_profile(
         + f"<i>{source_str}{sponsor_str}, dernier sondage: {date}.</i>"
     )
     fig.update_layout(title=title, title_x=0.5)
+    fig = add_image_to_fig(fig, x=1.00, y=1.05, sizex=0.10, sizey=0.10, xanchor="right")
 
     return fig
 
@@ -554,20 +555,22 @@ def plot_time_merit_profile_all_polls(df, aggregation, on_rolling_data: bool = F
         + f"<br> pour le candidat {df.candidat.unique().tolist()[0]}</b>"
     )
     fig.update_layout(title=title, title_x=0.5)
+    fig = add_image_to_fig(fig, x=1.1, y=0.15, sizex=0.25, sizey=0.25)
+
     return fig
 
 
-def add_image_to_fig(fig, x: float, y: float, sizex: float, sizey: float):
+def add_image_to_fig(fig, x: float, y: float, sizex: float, sizey: float, xanchor: str = "left"):
     fig.add_layout_image(
         dict(
-            source="https://raw.githubusercontent.com/MieuxVoter/majority-judgment-tracker/main/icons/logo.png",
+            source="https://raw.githubusercontent.com/MieuxVoter/majority-judgment-tracker/main/icons/logo.svg",
             xref="paper",
             yref="paper",
             x=x,
             y=y,
             sizex=sizex,
             sizey=sizey,
-            xanchor="left",
+            xanchor=xanchor,
             yanchor="bottom",
         )
     )
@@ -576,7 +579,7 @@ def add_image_to_fig(fig, x: float, y: float, sizex: float, sizey: float):
 
 def export_fig(fig, args, filename):
     if args.show:
-        fig.show()
+        fig.show(config=dict(displaylogo=False))
     if args.html:
         fig.write_html(f"{args.dest}/{filename}.html")
     if args.png:
@@ -608,7 +611,7 @@ def load_colors():
 def add_no_opinion_time_merit_profile(
     fig: go.Figure, df: DataFrame, suffix: str, show_legend: bool = True, row: int = None, col: int = None
 ):
-    sub_df = df[["fin_enquete",f"sans_opinion{suffix}"]]
+    sub_df = df[["fin_enquete", f"sans_opinion{suffix}"]]
     sub_df = sub_df.sort_values(by="fin_enquete").dropna()
     # sub_df = sub_df[df[f"sans_opinion{suffix}"] is not None]
     fig.add_trace(
