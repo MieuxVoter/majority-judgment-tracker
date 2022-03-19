@@ -133,7 +133,7 @@ def plot_merit_profiles(
 
 def ranking_plot(
     df,
-    on_rolling_data=False,
+    on_rolling_data: bool = False,
     source: str = None,
     sponsor: str = None,
     show_best_grade: bool = True,
@@ -345,6 +345,7 @@ def ranking_plot(
 def comparison_ranking_plot(
     df,
     source: str = None,
+    on_rolling_data: bool = False
 ):
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0)
 
@@ -360,6 +361,7 @@ def comparison_ranking_plot(
         fig=fig,
         row=1,
         col=1,
+        on_rolling_data=on_rolling_data,
     )
 
     df_uninominal = load_uninominal_ranks()

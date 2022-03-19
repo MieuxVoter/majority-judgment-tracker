@@ -64,6 +64,7 @@ def main(args: Arguments):
     df = apply_mj(df, rolling_mj=True)
     batch_time_merit_profile_all(df, args, aggregation, on_rolling_data=False)
     batch_time_merit_profile_all(df, args, aggregation, on_rolling_data=True)
+    batch_comparison_ranking(df, args, on_rolling_data=True)
 
 
 if __name__ == "__main__":
