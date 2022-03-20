@@ -78,11 +78,18 @@ def load_uninominal_ranks():
     df_uninominal = load_data_from_nsppolls()
 
     # Create a new dataframe
-    df_rank_uninominal = pd.DataFrame(columns=["candidat", "fin_enquete", "valeur", "rang"])
+    df_rank_uninominal = pd.DataFrame(columns=["candidat", "fin_enquete", "valeur", "rang", "erreur_sup", "erreur_inf"])
     for row in df_uninominal.iterrows():
         dict_moy = row[1]["candidats"]["intentions_moy_14d"]
-        for d, v in zip(dict_moy["fin_enquete"], dict_moy["valeur"]):
-            row_to_add = dict(candidat=row[0], fin_enquete=d, valeur=v, rang=None)
+        for d, v, sup, inf in zip(
+            dict_moy["fin_enquete"],
+            dict_moy["valeur"],
+            dict_moy["erreur_inf"],
+            dict_moy["erreur_sup"],
+        ):
+            row_to_add = dict(
+                candidat=row[0], fin_enquete=d, valeur=v, rang=None, erreur_sup=sup, erreur_inf=inf  # intentions=i,
+            )
             df_dictionary = pd.DataFrame([row_to_add])
             df_rank_uninominal = pd.concat([df_rank_uninominal, df_dictionary], ignore_index=True)
 
@@ -95,7 +102,9 @@ def load_uninominal_ranks():
             if (d > date_min) and (d < date_max) and temp_df[temp_df["fin_enquete"] == d].empty:
                 idx = temp_df["fin_enquete"].searchsorted(d)
                 v = temp_df["valeur"].iloc[idx - 1]
-                row_to_add = dict(candidat=c, fin_enquete=d, valeur=v, rang=None)
+                sup = temp_df["erreur_sup"].iloc[idx - 1]
+                inf = temp_df["erreur_inf"].iloc[idx - 1]
+                row_to_add = dict(candidat=c, fin_enquete=d, valeur=v, rang=None, erreur_sup=sup, erreur_inf=inf)
                 df_dictionary = pd.DataFrame([row_to_add])
                 df_rank_uninominal = pd.concat([df_rank_uninominal, df_dictionary], ignore_index=True)
 
@@ -109,3 +118,24 @@ def load_uninominal_ranks():
         df_rank_uninominal.loc[index_row, "rang"] = [i + 1 for i in range(nb_candidates)]
 
     return df_rank_uninominal
+
+
+def load_uninominal_data():
+    df_uninominal = load_data_from_nsppolls()
+
+    # Create a new dataframe
+    df_uninominal_data = pd.DataFrame(columns=["candidat", "fin_enquete", "intentions"])
+    for row in df_uninominal.iterrows():
+        for (
+            d,
+            i,
+        ) in zip(row[1]["candidats"]["intentions"]["fin_enquete"], row[1]["candidats"]["intentions"]["valeur"]):
+            row_to_add = dict(
+                candidat=row[0],
+                fin_enquete=d,
+                intentions=i,
+            )
+            df_dictionary = pd.DataFrame([row_to_add])
+            df_uninominal_data = pd.concat([df_uninominal_data, df_dictionary], ignore_index=True)
+
+    return df_uninominal_data

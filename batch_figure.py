@@ -4,6 +4,7 @@ from plots import (
     comparison_ranking_plot,
     plot_time_merit_profile,
     plot_time_merit_profile_all_polls,
+    plot_ranked_time_merit_profile,
     export_fig,
 )
 from utils import (
@@ -104,6 +105,26 @@ def batch_time_merit_profile(df, args, aggregation, polls: PollingOrganizations 
         if args.time_merit_profile:
             fig = plot_time_merit_profile_all_polls(temp_df, aggregation)
             filename = f"time_merit_profile_comparison{aggregation_label}_{c}"
+            print(filename)
+            export_fig(fig, args, filename)
+
+
+def batch_ranked_time_merit_profile(df, args, aggregation, polls: PollingOrganizations = PollingOrganizations):
+    for poll in polls:
+        if poll == PollingOrganizations.ALL and aggregation == AggregationMode.NO_AGGREGATION:
+            continue
+        df_poll = df[df["nom_institut"] == poll.value].copy() if poll != PollingOrganizations.ALL else df.copy()
+        first_idx = df_poll.first_valid_index()
+        source = poll.value
+        label = source if poll != PollingOrganizations.ALL else poll.name
+        sponsor = df_poll["commanditaire"].loc[first_idx] if poll != PollingOrganizations.ALL else None
+        aggregation_label = f"_{aggregation.name}" if aggregation != AggregationMode.NO_AGGREGATION else ""
+
+        if df_poll.empty:
+            continue
+        if args.ranked_time_merit_profile:
+            fig = plot_ranked_time_merit_profile(df_poll, source=source, sponsor=sponsor, show_no_opinion=True)
+            filename = f"ranked_time_merit_profile{aggregation_label}_{label}"
             print(filename)
             export_fig(fig, args, filename)
 
