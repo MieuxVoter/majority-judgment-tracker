@@ -393,17 +393,21 @@ def comparison_ranking_plot(df, source: str = None, on_rolling_data: bool = Fals
     return fig
 
 
-def plot_comparison_intention(df, source: str = None, on_rolling_data: bool = False):
-    subplot_title_2 = "au jugement majoritaire"
-    subplot_title_2 += f"<br><i>sources: {source}</i>" if source is not None else ""
+def plot_comparison_intention(df, source: str = None, sponsor: str = None, on_rolling_data: bool = False):
+    subplot_title_1 = "<b>Scrutin uninominal</b>"
+    subplot_title_1 += f"<br><i>source: nsppolls.fr</i>"
+    subplot_title_2 = "<b>Jugement majoritaire</b>"
+    subplot_title_2 += f"<br><i>source: {source}</i>" if source is not None else ""
+    subplot_title_2 += f", commanditaire: {sponsor}</i>" if source is not None else ""
+    candidate = df["candidat"].unique()[0]
 
     fig = make_subplots(
         rows=1,
         cols=2,
         shared_xaxes=True,
         shared_yaxes=False,
-        subplot_titles=("au scrutin uninominal", subplot_title_2),
-        vertical_spacing=1
+        subplot_titles=(subplot_title_1, subplot_title_2),
+        vertical_spacing=1,
     )
 
     fig = plot_time_merit_profile(
@@ -415,6 +419,36 @@ def plot_comparison_intention(df, source: str = None, on_rolling_data: bool = Fa
         row=1,
         col=2,
         on_rolling_data=on_rolling_data,
+        show_logo=False,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=df["fin_enquete"].iloc[-1:],
+            y=[50],
+            mode="markers",
+            marker=dict(color="black"),
+            showlegend=False,
+        ),
+        row=1,
+        col=2,
+    )
+    ext_candidate = _extended_name_annotations(
+        df, candidate=candidate, show_rank=True, show_best_grade=True, show_no_opinion=True, breaks_in_names=False
+    )
+    fig["layout"]["annotations"] += (
+        dict(
+            x=pd.to_datetime(df["fin_enquete"].iloc[-1:].tolist()[0]),
+            y=25,
+            xanchor="center",
+            xshift=65,
+            yshift=30,
+            yanchor="middle",
+            text=f"<b>{ext_candidate}</b>",
+            font=dict(family="Arial", color="black"),
+            showarrow=False,
+            xref="x2",
+            yref="y1",
+        ),
     )
 
     df_uninominal = load_uninominal_ranks()
@@ -431,40 +465,37 @@ def plot_comparison_intention(df, source: str = None, on_rolling_data: bool = Fa
     df_uninominal_data = load_uninominal_data()
     df_uninominal_data = df_uninominal_data[df_uninominal_data["fin_enquete"] >= df["fin_enquete"].min()]
 
-    df_uninominal_data_other = df_uninominal_data[df_uninominal_data["candidat"] != df["candidat"].unique()[0]]
-    fig = plot_intention_data(df_uninominal_data_other, col_intention="intentions", fig=fig, row=1, col=1, colored=False)
-
     df_uninominal_data = df_uninominal_data[df_uninominal_data["candidat"] == df["candidat"].unique()[0]]
     fig = plot_intention_data(df_uninominal_data, col_intention="intentions", fig=fig, row=1, col=1, colored=True)
 
     fig = _add_election_date(fig=fig, row=1, col=1)
     fig = _add_election_date(fig=fig, row=1, col=2)
     fig.update_yaxes(row=1, col=1, visible=True, title="Intention de vote (%)", range=[0, 50])
-    fig.update_yaxes(row=1, col=2, visible=True, title="Mentions (%)")
+    fig.update_yaxes(row=1, col=2, visible=True, title="Mentions (%)", range=[0, 100])
     fig.update_xaxes(
         row=1,
         col=1,
         range=[df_uninominal["fin_enquete"].min(), "2022-04-15"],
         visible=True,
+        ticklabelposition="outside bottom",
     )
     fig.update_xaxes(
         row=1,
         col=2,
         range=[df_uninominal["fin_enquete"].min(), "2022-04-15"],
         visible=True,
+        ticklabelposition="outside bottom",
     )
-    candidate = df["candidat"].unique()[0]
-    title = (
-        "<b>Comparaison des intentions de votes à l'élection présidentielle 2022"
-        + f"<br>{candidate}</b><br>"
-    )
-    fig.update_layout(title=title, title_x=0.5, width=1200, height=600)
+
+    title = "<b>Comparaison des intentions de votes à l'élection présidentielle 2022" + f"<br>{candidate}</b><br>"
+    fig.update_layout(title=dict(text=title, x=0.5, xanchor="center", y=0.95), width=1200, height=600, )
+    fig = _add_image_to_fig(fig, x=1.00, y=1.1, sizex=0.10, sizey=0.10, xanchor="right")
     fig.show()
     return fig
 
 
 def plot_intention(
-    df,
+    df: DataFrame,
     col_intention: str,
     fig: go.Figure = None,
     colored: bool = True,
@@ -475,13 +506,14 @@ def plot_intention(
     colors = load_colors()
     color = colors[candidate]["couleur"] if colored else "#d3d3d3"
     opacity = 1 if colored else 0.3
+    width = 3 if colored else 1
     fig.add_trace(
         go.Scatter(
             x=df["fin_enquete"],
             y=df[col_intention],
-            hoverinfo="x+y",
+            hoverinfo="all",
             mode="lines",
-            line=dict(color=color),
+            line=dict(color=color, width=width),
             name=candidate,
             showlegend=False,
             legendgroup=candidate,
@@ -489,6 +521,7 @@ def plot_intention(
         row=row,
         col=col,
     )
+    rank = df["rang"].iloc[-1:].to_numpy()[0]
     fig.add_trace(
         go.Scatter(
             x=df["fin_enquete"].iloc[-1:],
@@ -498,7 +531,7 @@ def plot_intention(
             marker=dict(color=color, opacity=opacity),
             legendgroup=candidate,
             showlegend=False,
-            text=["HEHELELELELELELE"]
+            text=[f"{rank2str(rank)}"],
         ),
         row=row,
         col=col,
@@ -525,21 +558,21 @@ def plot_intention(
             col=col,
         )
 
-    xref = f"x{col}" if row is not None else None
-    yref = f"y{row}" if row is not None else None
-
-    # fig['layout']['annotations'] += (dict(
-    #         x=df["fin_enquete"].iloc[-1:],
-    #         y=df[col_intention].iloc[-1:],
-    #         # xanchor="right",
-    #         # xshift=0,
-    #         # yanchor="middle",
-    #         text=f"<b>{candidate}</b>",
-    #         # font=dict(family="Arial", size=12, color=color),
-    #         # showarrow=False,
-    #         xref=xref,
-    #         yref=yref,
-    #     ),)
+        xref = f"x{col}" if row is not None else None
+        yref = f"y{row}" if row is not None else None
+        candidate = _extended_name_annotations(df, candidate=candidate, show_rank=True, show_intention=True)
+        fig["layout"]["annotations"] += (
+            dict(
+                x=pd.to_datetime(df["fin_enquete"].iloc[-1:].tolist()[0]),
+                y=df[col_intention].iloc[-1:].tolist()[0],
+                xanchor="left",
+                xshift=10,
+                yanchor="middle",
+                text=f"<b>{candidate}</b>",
+                font=dict(family="Arial", size=12, color=color),
+                showarrow=False,
+            ),
+        )
 
     return fig
 
@@ -551,11 +584,12 @@ def plot_intention_data(
     colors = load_colors()
     color = colors[candidate]["couleur"] if colored else "lightgray"
     opacity = 0.5 if colored else 0.25
+    hoverinfo = "all" if colored else "y+name"
     fig.add_trace(
         go.Scatter(
             x=df["fin_enquete"],
             y=df[col_intention],
-            hoverinfo="x+y",
+            hoverinfo=hoverinfo,
             mode="markers",
             marker=dict(color=color, opacity=opacity, size=2),
             name=candidate,
@@ -576,6 +610,7 @@ def plot_time_merit_profile(
     source: str = None,
     show_no_opinion: bool = True,
     show_legend: bool = True,
+    show_logo: bool = True,
     on_rolling_data: bool = False,
     no_layout: bool = False,
     row: int = None,
@@ -657,7 +692,8 @@ def plot_time_merit_profile(
             + f"<i>{source_str}{sponsor_str}, dernier sondage: {date}.</i>"
         )
         fig.update_layout(title=title, title_x=0.5)
-        fig = _add_image_to_fig(fig, x=1.00, y=1.05, sizex=0.10, sizey=0.10, xanchor="right")
+        if show_logo:
+            fig = _add_image_to_fig(fig, x=1.00, y=1.05, sizex=0.10, sizey=0.10, xanchor="right")
 
     return fig
 
@@ -938,7 +974,8 @@ def _add_election_date(fig, row: int = None, col: int = None):
     yref = f"y{row}" if row is not None else None
 
     fig.add_vline(x="2022-04-10", line_dash="dot", row=row, col=col)
-    fig['layout']['annotations'] += (dict(
+    fig["layout"]["annotations"] += (
+        dict(
             x="2022-04-10",
             y=40,
             xanchor="left",
@@ -949,7 +986,8 @@ def _add_election_date(fig, row: int = None, col: int = None):
             showarrow=False,
             xref=xref,
             yref=yref,
-    ),)
+        ),
+    )
 
     return fig
 
@@ -961,6 +999,7 @@ def _extended_name_annotations(
     show_grade_area: bool = False,
     show_best_grade: bool = False,
     show_no_opinion: bool = False,
+    show_intention: bool = False,
     show_rank: bool = False,
 ):
     if breaks_in_names:
@@ -970,18 +1009,22 @@ def _extended_name_annotations(
         name_label = candidate
 
     extended_name_label = f"<b>{name_label}</b>"
-    if show_best_grade and not show_grade_area:
+    if show_rank:
+        extended_name_label += " " + rank2str(df["rang"].iloc[-1])
+        if show_best_grade:
+            extended_name_label += (
+                "<br>" + df["mention_majoritaire"].iloc[-1][0].upper() + df["mention_majoritaire"].iloc[-1][1:]
+            )
+        if show_no_opinion and df["sans_opinion"].iloc[-1] is not None:
+            extended_name_label += "<br><i>(sans opinion " + str(df["sans_opinion"].iloc[-1]) + "%)</i>"
+    if show_best_grade and not show_grade_area and not show_rank:
         extended_name_label += (
             "<br>" + df["mention_majoritaire"].iloc[-1][0].upper() + df["mention_majoritaire"].iloc[-1][1:]
         )
         if show_no_opinion and df["sans_opinion"].iloc[-1] is not None:
             extended_name_label += " <i>(sans opinion " + str(df["sans_opinion"].iloc[-1]) + "%)</i>"
-    if show_rank:
-        extended_name_label += " " + rank2str(df["rang"].iloc[-1])
-        if show_no_opinion and df["sans_opinion"].iloc[-1] is not None:
-            extended_name_label += " <i>(sans opinion " + str(df["sans_opinion"].iloc[-1]) + "%)</i>"
-    else:
-        if show_no_opinion and df["sans_opinion"].iloc[-1] is not None:
-            extended_name_label += "<br><i>(sans opinion " + str(df["sans_opinion"].iloc[-1]) + "%)</i>"
+
+    if show_intention:
+        extended_name_label += "<br>(" + str(round(df["valeur"].iloc[-1], 1)) + " %)"
 
     return extended_name_label
