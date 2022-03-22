@@ -6,6 +6,8 @@ from batch_figure import (
     batch_time_merit_profile,
     batch_comparison_ranking,
     batch_time_merit_profile_all,
+    batch_ranked_time_merit_profile,
+    batch_comparison_intention,
 )
 from interface_mj import apply_mj
 from load_surveys import load_surveys
@@ -16,16 +18,18 @@ from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 
 class Arguments(tap.Tap):
-    merit_profiles: bool = True
+    merit_profiles: bool = False
     comparison_ranking_plot: bool = False
     ranking_plot: bool = False
     time_merit_profile: bool = False
+    ranked_time_merit_profile: bool = False
+    comparison_intention: bool = True
     show: bool = False
     html: bool = False
-    png: bool = False
+    png: bool = True
     json: bool = False
     csv: Path = Path("presidentielle_jm.csv")
-    dest: Path = Path("figs")
+    dest: Path = Path("trackerapp/data/graphs/")
 
 
 def main(args: Arguments):
@@ -34,7 +38,7 @@ def main(args: Arguments):
     df = load_surveys(
         args.csv,
         no_opinion_mode=True,
-        candidates=Candidacy.ALL_CURRENT_CANDIDATES_WITH_ENOUGH_DATA,
+        candidates=Candidacy.ALL_CURRENT_CANDIDATES,
         aggregation=aggregation,
         polling_organization=PollingOrganizations.ALL,
         rolling_data=False,
@@ -50,6 +54,10 @@ def main(args: Arguments):
     batch_comparison_ranking(df, args)
     # generate time merit profile figures
     batch_time_merit_profile(df, args, aggregation)
+    # generate ranked time merit profile figures
+    batch_ranked_time_merit_profile(df, args, aggregation)
+    # comparison uninominal per candidates
+    batch_comparison_intention(df, args, aggregation)
 
     aggregation = AggregationMode.FOUR_MENTIONS
     df = load_surveys(

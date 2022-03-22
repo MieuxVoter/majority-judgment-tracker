@@ -333,7 +333,7 @@ def ranking_plot(
     fig = _add_image_to_fig(fig, x=1.00, y=1.05, sizex=0.10, sizey=0.10, xanchor="right")
     # SIZE OF THE FIGURE
     fig.update_layout(width=1200, height=800)
-    # fig.show()
+
     # Legend
     fig.update_layout(
         legend_title_text="Mentions majoritaires",
@@ -490,7 +490,7 @@ def plot_comparison_intention(df, source: str = None, sponsor: str = None, on_ro
     title = "<b>Comparaison des intentions de votes à l'élection présidentielle 2022" + f"<br>{candidate}</b><br>"
     fig.update_layout(title=dict(text=title, x=0.5, xanchor="center", y=0.95), width=1200, height=600, )
     fig = _add_image_to_fig(fig, x=1.00, y=1.1, sizex=0.10, sizey=0.10, xanchor="right")
-    fig.show()
+
     return fig
 
 
@@ -886,7 +886,7 @@ def export_fig(fig, args, filename):
     if args.html:
         fig.write_html(f"{args.dest}/{filename}.html", config=dict(displaylogo=False))
     if args.png:
-        fig.write_image(f"{args.dest}/{filename}.png", config=dict(displaylogo=False))
+        fig.write_image(f"{args.dest}/{filename}.png")
     if args.json:
         fig.write_json(f"{args.dest}/{filename}.json", config=dict(displaylogo=False))
 
