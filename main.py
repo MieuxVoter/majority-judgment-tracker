@@ -33,7 +33,7 @@ class Arguments(tap.Tap):
 
 
 def main(args: Arguments):
-    args.dest.mkdir(exist_ok=True)
+    args.dest.mkdir(exist_ok=True, parents=True)
     aggregation = AggregationMode.NO_AGGREGATION
     df = load_surveys(
         args.csv,
