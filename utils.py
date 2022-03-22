@@ -35,7 +35,5 @@ def get_candidates(df: DataFrame):
 def rank2str(rank: int):
     if rank == 1:
         return f"{rank}er"
-    elif rank == 2:
-        return f"{rank}nd"
     else:
         return f"{rank}e"

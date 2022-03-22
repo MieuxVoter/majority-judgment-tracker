@@ -888,7 +888,7 @@ def export_fig(fig, args, filename):
     if args.png:
         fig.write_image(f"{args.dest}/{filename}.png")
     if args.json:
-        fig.write_json(f"{args.dest}/{filename}.json", config=dict(displaylogo=False))
+        fig.write_json(f"{args.dest}/{filename}.json")
 
 
 def load_colors():
@@ -1015,13 +1015,13 @@ def _extended_name_annotations(
             extended_name_label += (
                 "<br>" + df["mention_majoritaire"].iloc[-1][0].upper() + df["mention_majoritaire"].iloc[-1][1:]
             )
-        if show_no_opinion and df["sans_opinion"].iloc[-1] is not None:
+        if show_no_opinion and not np.isnan(df["sans_opinion"].iloc[-1]):
             extended_name_label += "<br><i>(sans opinion " + str(df["sans_opinion"].iloc[-1]) + "%)</i>"
     if show_best_grade and not show_grade_area and not show_rank:
         extended_name_label += (
             "<br>" + df["mention_majoritaire"].iloc[-1][0].upper() + df["mention_majoritaire"].iloc[-1][1:]
         )
-        if show_no_opinion and df["sans_opinion"].iloc[-1] is not None:
+        if show_no_opinion and not np.isnan(df["sans_opinion"].iloc[-1]):
             extended_name_label += " <i>(sans opinion " + str(df["sans_opinion"].iloc[-1]) + "%)</i>"
 
     if show_intention:
