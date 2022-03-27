@@ -7,14 +7,14 @@ help :           ## Show this help.
 install: ## Installation of tools
 	pip install poetry
 	poetry install
-	cd trackerapp/ && npm install
-
+	cd trackerapp/ && npm install && cd ..
+ 
 png:  install ## Produce png images
 	poetry run python main.py --dest figs/ --png
 
 app:  install ## Build the application
 	poetry run python main.py --dest trackerapp/data/graphs/ --json --merit_profiles
-	cd trackerapp/ && npm run build
+	cd trackerapp/ && npm run build && cd ..
 
 dev:  install ## Run the application on a development mode
 	poetry run python main.py --dest trackerapp/data/graphs/ --json --merit_profiles

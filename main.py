@@ -47,7 +47,7 @@ def main(args: Arguments):
     # apply mj on the whole dataframe for each survey
     df = apply_mj(df, rolling_mj=False)
     # generate merit profile figures
-    # batch_merit_profile(df, args)
+    batch_merit_profile(df, args)
     # # generate ranking figures
     # batch_ranking(df, args)
     # # generate comparison ranking figures
