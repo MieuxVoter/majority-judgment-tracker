@@ -888,7 +888,9 @@ def export_fig(fig, args, filename):
     if args.png:
         fig.write_image(f"{args.dest}/{filename}.png")
     if args.json:
-        fig.write_json(f"{args.dest}/{filename}.json")
+        filename = f"{args.dest}/{filename}.json"
+        print(filename)
+        fig.write_json(filename)
 
 
 def load_colors():
