@@ -1,8 +1,13 @@
 # majority-judgment-tracker
-Elegant plots to track opinion with majority judgment
+This repository is a simple tool for tracking the progress of opinion with majority-judgment.
+It provides elegant plots such as merit profiles, merit profile evolutions.
 
-### Todo:
+The database is a simple .csv file which contains polls compatible with the majority judgment rules:
+`presidentielle_jm.csv`
 
-* mettre si le candidat est candidat à la presidentielle à la date du sondage. .csv
-* Agregation en "mention commune" ex: très bien et excellent = "positive"
-* Recuperer les sous-echantillons d'intentions de mentions par sympathisants
+The number of grades depends of the survey (4,5,6). An AggregationMode Enum is provided to choose the aggregation mode.
+The mapping to a common system of grades is provided in the `standardisation.csv` file.
+
+
+
+
