@@ -1,5 +1,5 @@
 [build]
   command = "CI= make app"
-  publish = "trackerapp/build"
+  publish = "trackerapp/.next"
   environment = {  PYTHON_VERSION = "3.8", NODE_VERSION = '16' }
 
