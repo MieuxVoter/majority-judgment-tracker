@@ -6,6 +6,19 @@ def get_list_survey(df: DataFrame):
 
 
 def get_intentions(df: DataFrame, nb_mentions: int = 7) -> object:
+    """
+    Get the intentions of voters
+
+    Parameters
+    ----------
+    df : DataFrame
+        DataFrame containing the survey
+    nb_mentions : int
+        Number of mentions
+    Returns
+    -------
+        Dataframe surveys with intentions of voters only
+    """
     list_col = df.columns.to_list()
     colheader = ["candidat"]
     colheader.extend(get_intentions_colheaders(df, nb_mentions))
@@ -37,3 +50,5 @@ def rank2str(rank: int):
         return f"{rank}er"
     else:
         return f"{rank}e"
+
+
