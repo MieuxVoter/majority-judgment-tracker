@@ -1,6 +1,5 @@
 import React, {Component} from "react";
 import Select from 'react-select';
-import graphs from "../data/graphs"
 import dynamic from 'next/dynamic'
 
 const DynamicPlot = dynamic(import('react-plotly.js'), {
