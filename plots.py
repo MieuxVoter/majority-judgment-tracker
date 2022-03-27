@@ -889,7 +889,6 @@ def export_fig(fig, args, filename):
         fig.write_image(f"{args.dest}/{filename}.png")
     if args.json:
         filename = f"{args.dest}/{filename}.json"
-        print('filename', args.dest, filename)
         fig.write_json(filename)
 
 
