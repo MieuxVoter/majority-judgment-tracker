@@ -4,6 +4,8 @@ from plots import (
     comparison_ranking_plot,
     plot_time_merit_profile,
     plot_time_merit_profile_all_polls,
+    plot_ranked_time_merit_profile,
+    plot_comparison_intention,
     export_fig,
 )
 from utils import (
@@ -42,7 +44,7 @@ def batch_merit_profile(df, args):
             export_fig(fig, args, filename)
 
 
-def batch_ranking(df, args):
+def batch_ranking(df, args, on_rolling_data: bool = False):
     for poll in PollingOrganizations:
         df_poll = df[df["nom_institut"] == poll.value].copy() if poll != PollingOrganizations.ALL else df.copy()
         first_idx = df_poll.first_valid_index()
@@ -52,22 +54,28 @@ def batch_ranking(df, args):
 
         if args.ranking_plot:
             fig, annotations = ranking_plot(
-                df_poll, source=source, sponsor=sponsor, show_grade_area=True, breaks_in_names=True, show_rank=False
+                df_poll,
+                source=source,
+                sponsor=sponsor,
+                show_grade_area=True,
+                breaks_in_names=True,
+                show_rank=False,
+                on_rolling_data=on_rolling_data,
             )
             filename = f"ranking_plot_{label}"
             print(filename)
             export_fig(fig, args, filename)
 
 
-def batch_comparison_ranking(df, args):
+def batch_comparison_ranking(df, args, on_rolling_data: bool = False):
     for poll in PollingOrganizations:
         df_poll = df[df["nom_institut"] == poll.value].copy() if poll != PollingOrganizations.ALL else df.copy()
         source = poll.value
         label = source if poll != PollingOrganizations.ALL else poll.name
-
+        roll = "_roll" if on_rolling_data else ""
         if args.comparison_ranking_plot:
-            fig = comparison_ranking_plot(df_poll, source=source)
-            filename = f"comparison_ranking_plot_{label}"
+            fig = comparison_ranking_plot(df_poll, source=source, on_rolling_data=on_rolling_data)
+            filename = f"comparison_ranking_plot_{label}{roll}"
             print(filename)
             export_fig(fig, args, filename)
 
@@ -100,6 +108,48 @@ def batch_time_merit_profile(df, args, aggregation, polls: PollingOrganizations 
             filename = f"time_merit_profile_comparison{aggregation_label}_{c}"
             print(filename)
             export_fig(fig, args, filename)
+
+
+def batch_ranked_time_merit_profile(df, args, aggregation, polls: PollingOrganizations = PollingOrganizations):
+    for poll in polls:
+        if poll == PollingOrganizations.ALL and aggregation == AggregationMode.NO_AGGREGATION:
+            continue
+        df_poll = df[df["nom_institut"] == poll.value].copy() if poll != PollingOrganizations.ALL else df.copy()
+        first_idx = df_poll.first_valid_index()
+        source = poll.value
+        label = source if poll != PollingOrganizations.ALL else poll.name
+        sponsor = df_poll["commanditaire"].loc[first_idx] if poll != PollingOrganizations.ALL else None
+        aggregation_label = f"_{aggregation.name}" if aggregation != AggregationMode.NO_AGGREGATION else ""
+
+        if df_poll.empty:
+            continue
+        if args.ranked_time_merit_profile:
+            fig = plot_ranked_time_merit_profile(df_poll, source=source, sponsor=sponsor, show_no_opinion=True)
+            filename = f"ranked_time_merit_profile{aggregation_label}_{label}"
+            print(filename)
+            export_fig(fig, args, filename)
+
+
+def batch_comparison_intention(df, args, aggregation, polls: PollingOrganizations = PollingOrganizations, on_rolling_data : bool =False):
+    for poll in polls:
+        if poll == PollingOrganizations.ALL and aggregation == AggregationMode.NO_AGGREGATION:
+            continue
+        df_poll = df[df["nom_institut"] == poll.value].copy() if poll != PollingOrganizations.ALL else df.copy()
+        first_idx = df_poll.first_valid_index()
+        source = poll.value
+        label = source if poll != PollingOrganizations.ALL else poll.name
+        sponsor = df_poll["commanditaire"].loc[first_idx] if poll != PollingOrganizations.ALL else None
+        aggregation_label = f"_{aggregation.name}" if aggregation != AggregationMode.NO_AGGREGATION else ""
+
+        if df_poll.empty:
+            continue
+        if args.comparison_intention:
+            for c in get_candidates(df_poll):
+                temp_df = df_poll[df_poll["candidat"] == c]
+                fig = plot_comparison_intention(temp_df, source=source, sponsor=sponsor, on_rolling_data=on_rolling_data)
+                filename = f"intention_{label}{aggregation_label}_{c}"
+                print(filename)
+                export_fig(fig, args, filename)
 
 
 def batch_time_merit_profile_all(df, args, aggregation, on_rolling_data: bool = False):
