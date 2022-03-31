@@ -1,10 +1,20 @@
 import json
 import pandas as pd
 import datetime
+import warnings
 
+class Polldata:
+    @staticmethod
+    def getPanda(source):
+        if not hasattr(Polldata, 'source'):
+            print('initializing panda source ' + source)
+            Polldata.source=source
+            Polldata.panda=pd.read_csv("https://raw.githubusercontent.com/nsppolls/nsppolls/master/presidentielle.csv")
+        print('using panda source ' + Polldata.source)
+        return Polldata.panda
 
 def load_data_from_nsppolls():
-    df = pd.read_csv("https://raw.githubusercontent.com/nsppolls/nsppolls/master/presidentielle.csv")
+    df = Polldata.getPanda("https://raw.githubusercontent.com/nsppolls/nsppolls/master/presidentielle.csv")
     df = df[df["tour"] == "Premier tour"]
     df = df.sort_values(by="fin_enquete")
     df = df[df["fin_enquete"] > "2021-09-01"]
@@ -41,10 +51,12 @@ def load_data_from_nsppolls():
         df_temp_rolling_std = (
             round(df_temp_rolling_std.resample("1d").mean().dropna(), 2).rolling(window=7).mean().dropna()
         )
-
-        derniere_intention = derniere_intention.append(
-            {"candidat": candidat, "intentions": df_temp_rolling.intentions.to_list()[-1]}, ignore_index=True
-        )
+        
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            derniere_intention = derniere_intention.append(
+                {"candidat": candidat, "intentions": df_temp_rolling.intentions.to_list()[-1]}, ignore_index=True
+            )
 
         dict_candidats[candidat] = {
             "intentions_moy_14d": {
