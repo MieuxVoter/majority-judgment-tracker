@@ -75,9 +75,7 @@ def batch_comparison_ranking(df, smp_data: SMPData, args, on_rolling_data: bool 
         label = source if poll != PollingOrganizations.ALL else poll.name
         roll = "_roll" if on_rolling_data else ""
         if args.comparison_ranking_plot:
-            fig = comparison_ranking_plot(
-                df_poll, smp_data=smp_data, source=source, on_rolling_data=on_rolling_data
-            )
+            fig = comparison_ranking_plot(df_poll, smp_data=smp_data, source=source, on_rolling_data=on_rolling_data)
             filename = f"comparison_ranking_plot_{label}{roll}"
             print(filename)
             export_fig(fig, args, filename)

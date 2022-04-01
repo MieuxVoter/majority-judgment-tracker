@@ -130,9 +130,7 @@ class SMPData:
         df_smp = self.df_treated
 
         # Create a new dataframe
-        df_rank_smp = pd.DataFrame(
-            columns=["candidat", "fin_enquete", "valeur", "rang", "erreur_sup", "erreur_inf"]
-        )
+        df_rank_smp = pd.DataFrame(columns=["candidat", "fin_enquete", "valeur", "rang", "erreur_sup", "erreur_inf"])
         for row in df_smp.iterrows():
             dict_moy = row[1]["candidats"]["intentions_moy_14d"]
             for d, v, sup, inf in zip(
