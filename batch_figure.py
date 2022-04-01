@@ -14,7 +14,7 @@ from utils import (
     get_candidates,
 )
 from misc.enums import PollingOrganizations, AggregationMode
-from load_uninomial_surveys import UninominalData
+from smp_data import SMPData
 
 
 def batch_merit_profile(df, args):
@@ -68,7 +68,7 @@ def batch_ranking(df, args, on_rolling_data: bool = False):
             export_fig(fig, args, filename)
 
 
-def batch_comparison_ranking(df, uninominal_data: UninominalData, args, on_rolling_data: bool = False):
+def batch_comparison_ranking(df, smp_data: SMPData, args, on_rolling_data: bool = False):
     for poll in PollingOrganizations:
         df_poll = df[df["nom_institut"] == poll.value].copy() if poll != PollingOrganizations.ALL else df.copy()
         source = poll.value
@@ -76,7 +76,7 @@ def batch_comparison_ranking(df, uninominal_data: UninominalData, args, on_rolli
         roll = "_roll" if on_rolling_data else ""
         if args.comparison_ranking_plot:
             fig = comparison_ranking_plot(
-                df_poll, uninominal_data=uninominal_data, source=source, on_rolling_data=on_rolling_data
+                df_poll, smp_data=smp_data, source=source, on_rolling_data=on_rolling_data
             )
             filename = f"comparison_ranking_plot_{label}{roll}"
             print(filename)
@@ -135,7 +135,7 @@ def batch_ranked_time_merit_profile(df, args, aggregation, polls: PollingOrganiz
 
 def batch_comparison_intention(
     df,
-    uninominal_data: UninominalData,
+    smp_data: SMPData,
     args,
     aggregation,
     polls: PollingOrganizations = PollingOrganizations,
@@ -158,7 +158,7 @@ def batch_comparison_intention(
                 temp_df = df_poll[df_poll["candidat"] == c]
                 fig = plot_comparison_intention(
                     temp_df,
-                    uninominal_data=uninominal_data,
+                    smp_data=smp_data,
                     source=source,
                     sponsor=sponsor,
                     on_rolling_data=on_rolling_data,

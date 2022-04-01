@@ -5,7 +5,7 @@ from seaborn import color_palette
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
-from load_uninomial_surveys import UninominalData
+from smp_data import SMPData
 from utils import get_intentions_colheaders, get_candidates, get_grades, rank2str
 from misc.enums import PollingOrganizations, AggregationMode
 
@@ -343,7 +343,7 @@ def ranking_plot(
     return fig, annotations
 
 
-def comparison_ranking_plot(df, uninominal_data: UninominalData, source: str = None, on_rolling_data: bool = False):
+def comparison_ranking_plot(df, smp_data: SMPData, source: str = None, on_rolling_data: bool = False):
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0)
 
     fig, annotations = ranking_plot(
@@ -361,11 +361,11 @@ def comparison_ranking_plot(df, uninominal_data: UninominalData, source: str = N
         on_rolling_data=on_rolling_data,
     )
 
-    df_uninominal = uninominal_data.get_ranks()
-    df_uninominal = df_uninominal[df_uninominal["fin_enquete"] >= df["fin_enquete"].min()]
+    df_smp = smp_data.get_ranks()
+    df_smp = df_smp[df_smp["fin_enquete"] >= df["fin_enquete"].min()]
 
     fig, annotations = ranking_plot(
-        df_uninominal,
+        df_smp,
         source=None,
         sponsor=None,
         show_best_grade=False,
@@ -395,7 +395,7 @@ def comparison_ranking_plot(df, uninominal_data: UninominalData, source: str = N
 
 def plot_comparison_intention(
     df: DataFrame,
-    uninominal_data: UninominalData,
+    smp_data: SMPData,
     source: str = None,
     sponsor: str = None,
     on_rolling_data: bool = False,
@@ -408,8 +408,8 @@ def plot_comparison_intention(
     ----------
     df : DataFrame
         DataFrame containing the data of the survey.
-    uninominal_data : UninominalData
-        UninominalData containing the data of the uninominal survey.
+    smp_data : SMPData
+        SMPData containing the data of the uninominal survey.
     source : str, optional
         Source of the data survey.
     sponsor : str, optional
@@ -479,22 +479,22 @@ def plot_comparison_intention(
         ),
     )
 
-    df_uninominal = uninominal_data.get_ranks()
-    df_uninominal = df_uninominal[df_uninominal["fin_enquete"] >= df["fin_enquete"].min()]
+    df_smp = smp_data.get_ranks()
+    df_smp = df_smp[df_smp["fin_enquete"] >= df["fin_enquete"].min()]
 
-    df_uninominal_other = df_uninominal[df_uninominal["candidat"] != df["candidat"].unique()[0]]
-    for c in df_uninominal_other["candidat"]:
-        df_temp = df_uninominal_other[df_uninominal_other["candidat"] == c]
+    df_smpother = df_smp[df_smp["candidat"] != df["candidat"].unique()[0]]
+    for c in df_smpother["candidat"]:
+        df_temp = df_smpother[df_smpother["candidat"] == c]
         fig = plot_intention(df_temp, col_intention="valeur", fig=fig, row=1, col=1, colored=False)
 
-    df_uninominal = df_uninominal[df_uninominal["candidat"] == df["candidat"].unique()[0]]
-    fig = plot_intention(df_uninominal, col_intention="valeur", fig=fig, row=1, col=1, colored=True)
+    df_smp = df_smp[df_smp["candidat"] == df["candidat"].unique()[0]]
+    fig = plot_intention(df_smp, col_intention="valeur", fig=fig, row=1, col=1, colored=True)
 
-    df_uninominal_data = uninominal_data.get_intentions()
-    df_uninominal_data = df_uninominal_data[df_uninominal_data["fin_enquete"] >= df["fin_enquete"].min()]
+    df_smp_data = smp_data.get_intentions()
+    df_smp_data = df_smp_data[df_smp_data["fin_enquete"] >= df["fin_enquete"].min()]
 
-    df_uninominal_data = df_uninominal_data[df_uninominal_data["candidat"] == df["candidat"].unique()[0]]
-    fig = plot_intention_data(df_uninominal_data, col_intention="intentions", fig=fig, row=1, col=1, colored=True)
+    df_smp_data = df_smp_data[df_smp_data["candidat"] == df["candidat"].unique()[0]]
+    fig = plot_intention_data(df_smp_data, col_intention="intentions", fig=fig, row=1, col=1, colored=True)
 
     fig = _add_election_date(fig=fig, row=1, col=1)
     fig = _add_election_date(fig=fig, row=1, col=2)
@@ -503,14 +503,14 @@ def plot_comparison_intention(
     fig.update_xaxes(
         row=1,
         col=1,
-        range=[df_uninominal["fin_enquete"].min(), "2022-04-15"],
+        range=[df_smp["fin_enquete"].min(), "2022-04-15"],
         visible=True,
         ticklabelposition="outside bottom",
     )
     fig.update_xaxes(
         row=1,
         col=2,
-        range=[df_uninominal["fin_enquete"].min(), "2022-04-15"],
+        range=[df_smp["fin_enquete"].min(), "2022-04-15"],
         visible=True,
         ticklabelposition="outside bottom",
     )

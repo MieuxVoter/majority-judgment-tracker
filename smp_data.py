@@ -4,9 +4,9 @@ import datetime
 import warnings
 
 
-class UninominalData:
+class SMPData:
     """
-    Class to load uninomial data from nsppolls.fr and to transform it into a pandas dataframe.
+    Single-Member Plurality Voting Data from nsppolls.fr and to transform it into a pandas dataframe.
 
     Attributes
     ----------
@@ -124,16 +124,16 @@ class UninominalData:
 
         Returns
         -------
-        df_ranks_uninominal : pd.DataFrame
+        df_ranks_smp : pd.DataFrame
             Dataframe with the ranks of the candidates.
         """
-        df_uninominal = self.df_treated
+        df_smp = self.df_treated
 
         # Create a new dataframe
-        df_rank_uninominal = pd.DataFrame(
+        df_rank_smp = pd.DataFrame(
             columns=["candidat", "fin_enquete", "valeur", "rang", "erreur_sup", "erreur_inf"]
         )
-        for row in df_uninominal.iterrows():
+        for row in df_smp.iterrows():
             dict_moy = row[1]["candidats"]["intentions_moy_14d"]
             for d, v, sup, inf in zip(
                 dict_moy["fin_enquete"],
@@ -145,14 +145,14 @@ class UninominalData:
                     candidat=row[0], fin_enquete=d, valeur=v, rang=None, erreur_sup=sup, erreur_inf=inf  # intentions=i,
                 )
                 df_dictionary = pd.DataFrame([row_to_add])
-                df_rank_uninominal = pd.concat([df_rank_uninominal, df_dictionary], ignore_index=True)
+                df_rank_smp = pd.concat([df_rank_smp, df_dictionary], ignore_index=True)
 
         # Fill date without value for some candidates
-        for c in df_rank_uninominal["candidat"].unique():
-            temp_df = df_rank_uninominal[df_rank_uninominal["candidat"] == c]
+        for c in df_rank_smp["candidat"].unique():
+            temp_df = df_rank_smp[df_rank_smp["candidat"] == c]
             date_min = temp_df["fin_enquete"].min()
             date_max = temp_df["fin_enquete"].max()
-            for d in df_rank_uninominal["fin_enquete"].unique():
+            for d in df_rank_smp["fin_enquete"].unique():
                 if (d > date_min) and (d < date_max) and temp_df[temp_df["fin_enquete"] == d].empty:
                     idx = temp_df["fin_enquete"].searchsorted(d)
                     v = temp_df["valeur"].iloc[idx - 1]
@@ -160,18 +160,17 @@ class UninominalData:
                     inf = temp_df["erreur_inf"].iloc[idx - 1]
                     row_to_add = dict(candidat=c, fin_enquete=d, valeur=v, rang=None, erreur_sup=sup, erreur_inf=inf)
                     df_dictionary = pd.DataFrame([row_to_add])
-                    df_rank_uninominal = pd.concat([df_rank_uninominal, df_dictionary], ignore_index=True)
+                    df_rank_smp = pd.concat([df_rank_smp, df_dictionary], ignore_index=True)
 
         # Compute the rank of every candidates
-        df_rank_uninominal = df_rank_uninominal.sort_values(by=["fin_enquete", "valeur"], ascending=(True, False))
-        dates = df_rank_uninominal["fin_enquete"].unique()
+        df_rank_smp = df_rank_smp.sort_values(by=["fin_enquete", "valeur"], ascending=(True, False))
+        dates = df_rank_smp["fin_enquete"].unique()
         for d in dates:
-            nb_candidates = len(df_rank_uninominal[df_rank_uninominal["fin_enquete"] == d])
-            # index_col = df_rank_uninominal.columns.get_loc("rang")
-            index_row = df_rank_uninominal.index[df_rank_uninominal["fin_enquete"] == d]
-            df_rank_uninominal.loc[index_row, "rang"] = [i + 1 for i in range(nb_candidates)]
+            nb_candidates = len(df_rank_smp[df_rank_smp["fin_enquete"] == d])
+            index_row = df_rank_smp.index[df_rank_smp["fin_enquete"] == d]
+            df_rank_smp.loc[index_row, "rang"] = [i + 1 for i in range(nb_candidates)]
 
-        return df_rank_uninominal
+        return df_rank_smp
 
     def get_intentions(self):
         """
@@ -179,14 +178,14 @@ class UninominalData:
 
         Returns
         -------
-        df_uninominal : pd.DataFrame
+        df_smp : pd.DataFrame
             Dataframe with the intentions of votes for each candidate.
         """
-        df_uninominal = self.df_treated
+        df_smp = self.df_treated
 
         # Create a new dataframe
-        df_uninominal_data = pd.DataFrame(columns=["candidat", "fin_enquete", "intentions"])
-        for row in df_uninominal.iterrows():
+        df_smp_data = pd.DataFrame(columns=["candidat", "fin_enquete", "intentions"])
+        for row in df_smp.iterrows():
             for (
                 d,
                 i,
@@ -197,6 +196,6 @@ class UninominalData:
                     intentions=i,
                 )
                 df_dictionary = pd.DataFrame([row_to_add])
-                df_uninominal_data = pd.concat([df_uninominal_data, df_dictionary], ignore_index=True)
+                df_smp_data = pd.concat([df_smp_data, df_dictionary], ignore_index=True)
 
-        return df_uninominal_data
+        return df_smp_data
