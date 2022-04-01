@@ -108,5 +108,3 @@ def rank2str(rank: int):
         return f"{rank}er"
     else:
         return f"{rank}e"
-
-

@@ -11,6 +11,7 @@ from batch_figure import (
 )
 from interface_mj import apply_mj
 from load_surveys import load_surveys
+from load_uninomial_surveys import UninominalData
 from misc.enums import Candidacy, AggregationMode, PollingOrganizations
 
 # todo: moyennes / ecart-type grades sur un profil de merite.
@@ -44,6 +45,8 @@ def main(args: Arguments):
         rolling_data=False,
     )
 
+    uninominal_data = UninominalData()
+
     # apply mj on the whole dataframe for each survey
     df = apply_mj(df, rolling_mj=False)
     # generate merit profile figures
@@ -51,13 +54,13 @@ def main(args: Arguments):
     # generate ranking figures
     batch_ranking(df, args)
     # generate comparison ranking figures
-    batch_comparison_ranking(df, args)
+    batch_comparison_ranking(df, uninominal_data, args)
     # generate time merit profile figures
     batch_time_merit_profile(df, args, aggregation)
     # generate ranked time merit profile figures
     batch_ranked_time_merit_profile(df, args, aggregation)
     # comparison uninominal per candidates
-    batch_comparison_intention(df, args, aggregation)
+    batch_comparison_intention(df, uninominal_data, args, aggregation)
 
     aggregation = AggregationMode.FOUR_MENTIONS
     df = load_surveys(
@@ -72,7 +75,7 @@ def main(args: Arguments):
     df = apply_mj(df, rolling_mj=True)
     batch_time_merit_profile_all(df, args, aggregation, on_rolling_data=False)
     batch_time_merit_profile_all(df, args, aggregation, on_rolling_data=True)
-    batch_comparison_ranking(df, args, on_rolling_data=True)
+    batch_comparison_ranking(df, uninominal_data, args, on_rolling_data=True)
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ from utils import (
     get_candidates,
 )
 from misc.enums import PollingOrganizations, AggregationMode
+from load_uninomial_surveys import UninominalData
 
 
 def batch_merit_profile(df, args):
@@ -67,14 +68,16 @@ def batch_ranking(df, args, on_rolling_data: bool = False):
             export_fig(fig, args, filename)
 
 
-def batch_comparison_ranking(df, args, on_rolling_data: bool = False):
+def batch_comparison_ranking(df, uninominal_data: UninominalData, args, on_rolling_data: bool = False):
     for poll in PollingOrganizations:
         df_poll = df[df["nom_institut"] == poll.value].copy() if poll != PollingOrganizations.ALL else df.copy()
         source = poll.value
         label = source if poll != PollingOrganizations.ALL else poll.name
         roll = "_roll" if on_rolling_data else ""
         if args.comparison_ranking_plot:
-            fig = comparison_ranking_plot(df_poll, source=source, on_rolling_data=on_rolling_data)
+            fig = comparison_ranking_plot(
+                df_poll, uninominal_data=uninominal_data, source=source, on_rolling_data=on_rolling_data
+            )
             filename = f"comparison_ranking_plot_{label}{roll}"
             print(filename)
             export_fig(fig, args, filename)
@@ -130,7 +133,14 @@ def batch_ranked_time_merit_profile(df, args, aggregation, polls: PollingOrganiz
             export_fig(fig, args, filename)
 
 
-def batch_comparison_intention(df, args, aggregation, polls: PollingOrganizations = PollingOrganizations, on_rolling_data : bool =False):
+def batch_comparison_intention(
+    df,
+    uninominal_data: UninominalData,
+    args,
+    aggregation,
+    polls: PollingOrganizations = PollingOrganizations,
+    on_rolling_data: bool = False,
+):
     for poll in polls:
         if poll == PollingOrganizations.ALL and aggregation == AggregationMode.NO_AGGREGATION:
             continue
@@ -146,7 +156,13 @@ def batch_comparison_intention(df, args, aggregation, polls: PollingOrganization
         if args.comparison_intention:
             for c in get_candidates(df_poll):
                 temp_df = df_poll[df_poll["candidat"] == c]
-                fig = plot_comparison_intention(temp_df, source=source, sponsor=sponsor, on_rolling_data=on_rolling_data)
+                fig = plot_comparison_intention(
+                    temp_df,
+                    uninominal_data=uninominal_data,
+                    source=source,
+                    sponsor=sponsor,
+                    on_rolling_data=on_rolling_data,
+                )
                 filename = f"intention_{label}{aggregation_label}_{c}"
                 print(filename)
                 export_fig(fig, args, filename)
