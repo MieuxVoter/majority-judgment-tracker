@@ -237,11 +237,9 @@ def ranking_plot(
         # name with break btw name and surname
         xref = f"x{col}" if row is not None else None
         yref = f"y{row}" if row is not None else None
-        if breaks_in_names:
-            idx_space = ii.find(" ")
-            name_label = ii[:idx_space] + "<br>" + ii[idx_space + 1 :]
-        else:
-            name_label = ii
+        name_label = _extended_name_annotations(
+            temp_df, candidate=ii, show_rank=False, show_best_grade=False, show_no_opinion=True, breaks_in_names=True
+        )
         size_annotations = 12
 
         # first dot annotation
@@ -253,7 +251,7 @@ def ranking_plot(
                     xanchor="right",
                     xshift=-10,
                     yanchor="middle",
-                    text=f"<b>{name_label}</b>",
+                    text=f"{name_label}",
                     font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
                     showarrow=False,
                     xref=xref,
@@ -262,22 +260,9 @@ def ranking_plot(
             )
 
         # Nice name label
-        extended_name_label = f"<b>{name_label}</b>"
-        if show_best_grade and not show_grade_area:
-            extended_name_label += (
-                "<br>"
-                + temp_df["mention_majoritaire"].iloc[-1][0].upper()
-                + temp_df["mention_majoritaire"].iloc[-1][1:]
-            )
-            if show_no_opinion and temp_df["sans_opinion"].iloc[-1] is not None:
-                extended_name_label += " <i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%)</i>"
-        if show_rank:
-            extended_name_label += " " + rank2str(temp_df["rang"].iloc[-1])
-            if show_no_opinion and temp_df["sans_opinion"].iloc[-1] is not None:
-                extended_name_label += " <i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%)</i>"
-        else:
-            if show_no_opinion and temp_df["sans_opinion"].iloc[-1] is not None:
-                extended_name_label += "<br><i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%)</i>"
+        extended_name_label = _extended_name_annotations(
+            temp_df, candidate=ii, show_rank=True, show_best_grade=False, show_no_opinion=True, breaks_in_names=True
+        )
 
         # last dot annotation
         # only if the last dot is correspond to the last polls
