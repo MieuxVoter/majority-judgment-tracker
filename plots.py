@@ -55,7 +55,7 @@ def plot_merit_profiles(
     )
 
     # vertical line
-    fig.add_vline(x=50, line_width=4, line_color="black")
+    fig.add_vline(x=50, line_width=2, line_color="black")
 
     # Legend
     fig.update_layout(
@@ -238,7 +238,7 @@ def ranking_plot(
         xref = f"x{col}" if row is not None else None
         yref = f"y{row}" if row is not None else None
         name_label = _extended_name_annotations(
-            temp_df, candidate=ii, show_rank=False, show_best_grade=False, show_no_opinion=True, breaks_in_names=True
+            temp_df, candidate=ii, show_rank=False, show_best_grade=False, show_no_opinion=False, breaks_in_names=breaks_in_names
         )
         size_annotations = 12
 
@@ -261,7 +261,12 @@ def ranking_plot(
 
         # Nice name label
         extended_name_label = _extended_name_annotations(
-            temp_df, candidate=ii, show_rank=True, show_best_grade=False, show_no_opinion=True, breaks_in_names=True
+            temp_df,
+            candidate=ii,
+            show_rank=show_rank,
+            show_best_grade=show_best_grade,
+            show_no_opinion=show_no_opinion,
+            breaks_in_names=breaks_in_names,
         )
 
         # last dot annotation
@@ -281,22 +286,7 @@ def ranking_plot(
                     yref=yref,
                 ),
             )
-
-    fig.add_vline(x="2022-04-10", line_dash="dot")
-    annotations.append(
-        dict(
-            x="2022-04-10",
-            y=0.25,
-            xanchor="left",
-            xshift=10,
-            yanchor="middle",
-            text="1er Tour",
-            font=dict(family="Arial", size=size_annotations),
-            showarrow=False,
-            xref=xref,
-            yref=yref,
-        )
-    )
+    fig = _add_election_date(fig, y=0.25, xshift=10)
 
     fig.update_layout(
         yaxis=dict(autorange="reversed", tick0=1, dtick=1, visible=False),
@@ -451,7 +441,7 @@ def plot_comparison_intention(
     fig["layout"]["annotations"] += (
         dict(
             x=pd.to_datetime(df["fin_enquete"].iloc[-1:].tolist()[0]),
-            y=35/2,
+            y=35 / 2,
             xanchor="center",
             xshift=65,
             yshift=30,
@@ -674,7 +664,7 @@ def plot_time_merit_profile(
     fig.add_hline(
         y=50,
         line_dash="solid",
-        line_width=3,
+        line_width=1,
         line_color="black",
         annotation_text="50 %",
         annotation_position="bottom right",
@@ -853,7 +843,7 @@ def plot_time_merit_profile_all_polls(df, aggregation, on_rolling_data: bool = F
         fig.add_hline(
             y=50,
             line_dash="dot",
-            line_width=2,
+            line_width=1,
             line_color="black",
             annotation_text="50 %",
             annotation_position="bottom right",
@@ -1026,7 +1016,7 @@ def _generate_windows_size(nb: int) -> tuple:
     return n_rows + 1 if n_rows * n_rows < nb else n_rows, n_rows
 
 
-def _add_election_date(fig: go.Figure, row: int = None, col: int = None):
+def _add_election_date(fig: go.Figure, y: float = 34, xshift: float = 0, row: int = None, col: int = None):
     """
     Add the date of the election to the figure.
 
@@ -1047,9 +1037,9 @@ def _add_election_date(fig: go.Figure, row: int = None, col: int = None):
     fig["layout"]["annotations"] += (
         dict(
             x="2022-04-10",
-            y=34,
+            y=y,
             xanchor="left",
-            xshift=0,
+            xshift=xshift,
             yanchor="middle",
             text="1er Tour",
             font=dict(family="Arial", size=12),
