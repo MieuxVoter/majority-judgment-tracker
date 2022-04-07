@@ -8,7 +8,7 @@ extend-exclude = '^external/'
 name = "majority-judgment-tracker"
 version = "0.1.0"
 description = "A tracker for election polls using majority judgment"
-authors = ["Pierre Pulch <mail@mail.com>", "Rémy Poulain <mail@mail.com>", "Samuel Ballé <mail@mail.com>", "Pierre-Louis Guhur <pierrelouisguhur@gmail.com>"]
+authors = ["Pierre Puchaud <puchaud.pierre@gmail.com>", "Rémy Poulain <mail@mail.com>", "Samuel Ballé <mail@mail.com>", "Pierre-Louis Guhur <pierrelouisguhur@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"

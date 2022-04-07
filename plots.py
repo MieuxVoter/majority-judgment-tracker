@@ -237,11 +237,9 @@ def ranking_plot(
         # name with break btw name and surname
         xref = f"x{col}" if row is not None else None
         yref = f"y{row}" if row is not None else None
-        if breaks_in_names:
-            idx_space = ii.find(" ")
-            name_label = ii[:idx_space] + "<br>" + ii[idx_space + 1 :]
-        else:
-            name_label = ii
+        name_label = _extended_name_annotations(
+            temp_df, candidate=ii, show_rank=False, show_best_grade=False, show_no_opinion=True, breaks_in_names=True
+        )
         size_annotations = 12
 
         # first dot annotation
@@ -253,7 +251,7 @@ def ranking_plot(
                     xanchor="right",
                     xshift=-10,
                     yanchor="middle",
-                    text=f"<b>{name_label}</b>",
+                    text=f"{name_label}",
                     font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
                     showarrow=False,
                     xref=xref,
@@ -262,22 +260,9 @@ def ranking_plot(
             )
 
         # Nice name label
-        extended_name_label = f"<b>{name_label}</b>"
-        if show_best_grade and not show_grade_area:
-            extended_name_label += (
-                "<br>"
-                + temp_df["mention_majoritaire"].iloc[-1][0].upper()
-                + temp_df["mention_majoritaire"].iloc[-1][1:]
-            )
-            if show_no_opinion and temp_df["sans_opinion"].iloc[-1] is not None:
-                extended_name_label += " <i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%)</i>"
-        if show_rank:
-            extended_name_label += " " + rank2str(temp_df["rang"].iloc[-1])
-            if show_no_opinion and temp_df["sans_opinion"].iloc[-1] is not None:
-                extended_name_label += " <i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%)</i>"
-        else:
-            if show_no_opinion and temp_df["sans_opinion"].iloc[-1] is not None:
-                extended_name_label += "<br><i>(sans opinion " + str(temp_df["sans_opinion"].iloc[-1]) + "%)</i>"
+        extended_name_label = _extended_name_annotations(
+            temp_df, candidate=ii, show_rank=True, show_best_grade=False, show_no_opinion=True, breaks_in_names=True
+        )
 
         # last dot annotation
         # only if the last dot is correspond to the last polls
@@ -466,7 +451,7 @@ def plot_comparison_intention(
     fig["layout"]["annotations"] += (
         dict(
             x=pd.to_datetime(df["fin_enquete"].iloc[-1:].tolist()[0]),
-            y=25,
+            y=35/2,
             xanchor="center",
             xshift=65,
             yshift=30,
@@ -498,7 +483,7 @@ def plot_comparison_intention(
 
     fig = _add_election_date(fig=fig, row=1, col=1)
     fig = _add_election_date(fig=fig, row=1, col=2)
-    fig.update_yaxes(row=1, col=1, visible=True, title="Intention de vote (%)", range=[0, 50])
+    fig.update_yaxes(row=1, col=1, visible=True, title="Intention de vote (%)", range=[0, 35])
     fig.update_yaxes(row=1, col=2, visible=True, title="Mentions (%)", range=[0, 100])
     fig.update_xaxes(
         row=1,
@@ -895,7 +880,28 @@ def plot_time_merit_profile_all_polls(df, aggregation, on_rolling_data: bool = F
     return fig
 
 
-def _add_image_to_fig(fig, x: float, y: float, sizex: float, sizey: float, xanchor: str = "left"):
+def _add_image_to_fig(fig: go.Figure, x: float, y: float, sizex: float, sizey: float, xanchor: str = "left"):
+    """
+    Add mieux voter logo to the figure
+
+    Parameters
+    ----------
+    fig : go.Figure
+       figure to add the date to
+    x : float
+        x position of the logo
+    y : float
+        y position of the logo
+    sizex : float
+        x size of the logo
+    sizey : float
+        y size of the logo
+    xanchor : str
+        x anchor of the logo (left, center, right)
+    Returns
+    -------
+    The figure with the logo
+    """
     fig.add_layout_image(
         dict(
             source="https://raw.githubusercontent.com/MieuxVoter/majority-judgment-tracker/main/icons/logo.svg",
@@ -912,7 +918,19 @@ def _add_image_to_fig(fig, x: float, y: float, sizex: float, sizey: float, xanch
     return fig
 
 
-def export_fig(fig, args, filename):
+def export_fig(fig: go.Figure, args, filename: str):
+    """
+    Export the figure to a file in the specified format
+
+    Parameters
+    ----------
+    fig : go.Figure
+       figure to add the date to
+    args : Arguments
+        Arguments of the export
+    filename : str
+        name of the file to export
+    """
     if args.show:
         fig.show(config=dict(displaylogo=False))
     if args.html:
@@ -924,7 +942,14 @@ def export_fig(fig, args, filename):
         fig.write_json(filename)
 
 
-def load_colors():
+def load_colors() -> dict:
+    """
+    Load the colors used for the different candidates
+    ---
+    Returns
+    -------
+    a dict of colors
+    """
     return {
         "Marine Le Pen": {"couleur": "#04006e"},
         "Emmanuel Macron": {"couleur": "#0095eb"},
@@ -1001,16 +1026,28 @@ def _generate_windows_size(nb: int) -> tuple:
     return n_rows + 1 if n_rows * n_rows < nb else n_rows, n_rows
 
 
-def _add_election_date(fig, row: int = None, col: int = None):
+def _add_election_date(fig: go.Figure, row: int = None, col: int = None):
+    """
+    Add the date of the election to the figure.
 
+    Parameters
+    ----------
+    fig : go.Figure
+       figure to add the date to
+    row : int
+        Row of the subplot
+    Returns
+    -------
+    The figure with the date of the election
+    """
     xref = f"x{col}" if row is not None else None
     yref = f"y{row}" if row is not None else None
 
-    fig.add_vline(x="2022-04-10", line_dash="dot", row=row, col=col)
+    fig.add_vline(x="2022-04-10", line_dash="dot", row=row, col=col, line=dict(color="rgba(0,0,0,0.5)"))
     fig["layout"]["annotations"] += (
         dict(
             x="2022-04-10",
-            y=40,
+            y=34,
             xanchor="left",
             xshift=0,
             yanchor="middle",
@@ -1035,6 +1072,33 @@ def _extended_name_annotations(
     show_intention: bool = False,
     show_rank: bool = False,
 ):
+    """
+    Get the name of the candidate formatted to be displayed on figures
+
+     Parameters
+    ----------
+    df : DataFrame
+        DataFrame containing the surveys
+    candidate : str
+        Name of the candidate to format the annotations
+    breaks_in_names : bool
+        If True, the name of the candidate is split in several lines
+    show_grade_area : bool
+        If True, the grade area is displayed
+    show_best_grade : bool
+        If True, the best grade is displayed
+    show_no_opinion : bool
+        If True, the number of people who did not give a opinion is displayed
+    show_intention : bool
+        If True, the intention of voters for the candidate is displayed
+    show_rank : bool
+        If True, the rank of the candidate is displayed
+
+    Returns
+    -------
+    The annotations of the name of the candidate
+    """
+
     if breaks_in_names:
         idx_space = candidate.find(" ")
         name_label = candidate[:idx_space] + "<br>" + candidate[idx_space + 1 :]

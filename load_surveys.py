@@ -30,7 +30,7 @@ def remove_undecided(df_survey: DataFrame, df_undecided_grades: DataFrame):
     """
     # compute initial number of grades attributed to each candidates
     cols = [f"intention_mention_{i + 1}" for i in range(df_survey["nombre_mentions"].iloc[0])]
-    tot = df_survey[cols].sum(axis=1).unique()
+    tot = df_survey[cols].sum(axis=1).round(5).unique()
     if len(tot) != 1:
         id_survey = df_survey["id"][df_survey.first_valid_index()]
         raise ValueError(f"the number of grades is not equal for each candidate in {id_survey}")
