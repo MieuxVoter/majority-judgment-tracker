@@ -19,7 +19,7 @@ def plot_merit_profiles(
     sponsor: str = None,
     source: str = None,
     show_no_opinion: bool = True,
-):
+) -> go.Figure:
     df = df.copy()
 
     nb_grades = len(grades)
@@ -146,7 +146,7 @@ def ranking_plot(
     annotations: dict = None,
     row=None,
     col=None,
-):
+) -> go.Figure:
     if on_rolling_data:
         if "rang_glissant" not in df.columns:
             raise ValueError("This dataframe hasn't been smoothed with rolling average.")
@@ -238,7 +238,12 @@ def ranking_plot(
         xref = f"x{col}" if row is not None else None
         yref = f"y{row}" if row is not None else None
         name_label = _extended_name_annotations(
-            temp_df, candidate=ii, show_rank=False, show_best_grade=False, show_no_opinion=False, breaks_in_names=breaks_in_names
+            temp_df,
+            candidate=ii,
+            show_rank=False,
+            show_best_grade=False,
+            show_no_opinion=False,
+            breaks_in_names=breaks_in_names,
         )
         size_annotations = 12
 
@@ -318,7 +323,7 @@ def ranking_plot(
     return fig, annotations
 
 
-def comparison_ranking_plot(df, smp_data: SMPData, source: str = None, on_rolling_data: bool = False):
+def comparison_ranking_plot(df, smp_data: SMPData, source: str = None, on_rolling_data: bool = False) -> go.Figure:
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0)
 
     fig, annotations = ranking_plot(
@@ -374,7 +379,7 @@ def plot_comparison_intention(
     source: str = None,
     sponsor: str = None,
     on_rolling_data: bool = False,
-):
+) -> go.Figure:
     """
     Plot the intention of the candidates in the two voting systems.
 
@@ -508,7 +513,7 @@ def plot_intention(
     colored: bool = True,
     row: int = None,
     col: int = None,
-):
+) -> go.Figure:
     candidate = df["candidat"].unique()[0]
     colors = load_colors()
     color = colors[candidate]["couleur"] if colored else "#d3d3d3"
@@ -586,7 +591,7 @@ def plot_intention(
 
 def plot_intention_data(
     df, col_intention: str, fig: go.Figure = None, colored: bool = True, row: int = None, col: int = None
-):
+) -> go.Figure:
     candidate = df["candidat"].unique()[0]
     colors = load_colors()
     color = colors[candidate]["couleur"] if colored else "lightgray"
@@ -622,7 +627,7 @@ def plot_time_merit_profile(
     no_layout: bool = False,
     row: int = None,
     col: int = None,
-):
+) -> go.Figure:
     if fig is None:
         fig = go.Figure()
 
@@ -711,7 +716,7 @@ def plot_ranked_time_merit_profile(
     source: str = None,
     show_no_opinion: bool = True,
     on_rolling_data: bool = False,
-):
+) -> go.Figure:
     # Candidat list sorted the rank in the last poll
     most_recent_date = df["fin_enquete"].max()
     temp_df = df[df["fin_enquete"] == most_recent_date]
@@ -779,7 +784,7 @@ def plot_ranked_time_merit_profile(
     return fig
 
 
-def plot_time_merit_profile_all_polls(df, aggregation, on_rolling_data: bool = False):
+def plot_time_merit_profile_all_polls(df, aggregation, on_rolling_data: bool = False) -> go.Figure:
     name_subplot = tuple([poll.value for poll in PollingOrganizations if poll != PollingOrganizations.ALL])
     suffix = "_roll" if on_rolling_data else ""
     fig = make_subplots(rows=3, cols=1, subplot_titles=name_subplot)
@@ -870,7 +875,9 @@ def plot_time_merit_profile_all_polls(df, aggregation, on_rolling_data: bool = F
     return fig
 
 
-def _add_image_to_fig(fig: go.Figure, x: float, y: float, sizex: float, sizey: float, xanchor: str = "left"):
+def _add_image_to_fig(
+    fig: go.Figure, x: float, y: float, sizex: float, sizey: float, xanchor: str = "left"
+) -> go.Figure:
     """
     Add mieux voter logo to the figure
 
@@ -928,6 +935,7 @@ def export_fig(fig: go.Figure, args, filename: str):
     if args.png:
         fig.write_image(f"{args.dest}/{filename}.png")
     if args.json:
+        fig.update_layout(width=None, height=None) # dont resize the figure to handle react.js
         filename = f"{args.dest}/{filename}.json"
         fig.write_json(filename)
 
@@ -961,7 +969,7 @@ def load_colors() -> dict:
 
 def add_no_opinion_time_merit_profile(
     fig: go.Figure, df: DataFrame, suffix: str, show_legend: bool = True, row: int = None, col: int = None
-):
+) -> go.Figure:
     sub_df = df[["fin_enquete", f"sans_opinion{suffix}"]]
     sub_df = sub_df.sort_values(by="fin_enquete").dropna()
     # sub_df = sub_df[df[f"sans_opinion{suffix}"] is not None]
@@ -1098,11 +1106,11 @@ def _extended_name_annotations(
     extended_name_label = f"<b>{name_label}</b>"
     if show_rank:
         extended_name_label += " " + rank2str(df["rang"].iloc[-1])
-        if show_best_grade:
+        if show_best_grade and df["mention_majoritaire"].iloc[-1] != "nan":
             extended_name_label += (
                 "<br>" + df["mention_majoritaire"].iloc[-1][0].upper() + df["mention_majoritaire"].iloc[-1][1:]
             )
-        if show_no_opinion and not np.isnan(df["sans_opinion"].iloc[-1]):
+        if show_no_opinion and "sans opinion" in df.columns and not np.isnan(df["sans_opinion"].iloc[-1]):
             extended_name_label += "<br><i>(sans opinion " + str(df["sans_opinion"].iloc[-1]) + "%)</i>"
     if show_best_grade and not show_grade_area and not show_rank:
         extended_name_label += (
