@@ -935,7 +935,8 @@ def export_fig(fig: go.Figure, args, filename: str):
     if args.png:
         fig.write_image(f"{args.dest}/{filename}.png")
     if args.json:
-        fig.update_layout(width=None, height=None) # dont resize the figure to handle react.js
+        # dont resize the figure to handle react.js and remove interactive mode for legends
+        fig.update_layout(width=None, height=None, legend_itemclick=False)
         filename = f"{args.dest}/{filename}.json"
         fig.write_json(filename)
 
