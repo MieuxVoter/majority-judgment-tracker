@@ -17,7 +17,19 @@ from misc.enums import PollingOrganizations, AggregationMode
 from smp_data import SMPData
 
 
-def batch_merit_profile(df, args):
+def batch_merit_profile(df, args, auto_text: bool = False):
+    """
+    Plot merit profiles for all polls
+
+    Parameters
+    ----------
+    df : DataFrame
+        DataFrame containing the data of the polls
+    args : Namespace
+        Namespace containing the arguments
+    auto_text : bool
+        If True, the intention of grade is automatically generated on the merit profile plot
+    """
     surveys = get_list_survey(df)
 
     for survey in surveys:
@@ -34,7 +46,7 @@ def batch_merit_profile(df, args):
             fig = plot_merit_profiles(
                 df=df_survey,
                 grades=grades,
-                auto_text=False,
+                auto_text=auto_text,
                 source=source,
                 date=date,
                 sponsor=sponsor,
@@ -60,7 +72,7 @@ def batch_ranking(df, args, on_rolling_data: bool = False):
                 sponsor=sponsor,
                 show_grade_area=True,
                 breaks_in_names=True,
-                show_rank=False,
+                show_best_grade=False,
                 on_rolling_data=on_rolling_data,
             )
             filename = f"ranking_plot_{label}"

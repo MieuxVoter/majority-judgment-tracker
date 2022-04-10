@@ -57,9 +57,9 @@ def main(args: Arguments):
         # # generate comparison ranking figures
         batch_comparison_ranking(df, smp_data, args)
         # # generate time merit profile figures
-        # batch_time_merit_profile(df, args, aggregation)
+        batch_time_merit_profile(df, args, aggregation)
         # # generate ranked time merit profile figures
-        # batch_ranked_time_merit_profile(df, args, aggregation)
+        batch_ranked_time_merit_profile(df, args, aggregation)
         # comparison uninominal per candidates
         batch_comparison_intention(df, smp_data, args, aggregation)
 
