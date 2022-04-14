@@ -5,9 +5,9 @@ from seaborn import color_palette
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
-from smp_data import SMPData
-from utils import get_intentions_colheaders, get_candidates, get_grades, rank2str
-from misc.enums import PollingOrganizations, AggregationMode
+from mjtracker.smp_data import SMPData
+from mjtracker.utils import get_intentions_colheaders, get_candidates, get_grades, rank2str
+from mjtracker.misc.enums import PollingOrganizations, AggregationMode
 
 
 def plot_merit_profiles(

@@ -1,8 +1,8 @@
-from libs.majority_judgment_2 import majority_judgment as mj
+from typing import List
 import numpy as np
 from pandas import DataFrame
-from utils import get_grades, get_list_survey
-from typing import List
+from mjtracker.utils import get_grades, get_list_survey
+from mjtracker.libs.majority_judgment_2 import majority_judgment as mj
 
 
 def apply_mj(
