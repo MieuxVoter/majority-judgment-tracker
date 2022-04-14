@@ -10,6 +10,11 @@ version = "0.1.0"
 description = "A tracker for election polls using majority judgment"
 authors = ["Pierre Puchaud <puchaud.pierre@gmail.com>", "Rémy Poulain <mail@mail.com>", "Samuel Ballé <mail@mail.com>", "Pierre-Louis Guhur <pierrelouisguhur@gmail.com>"]
 
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+
 [tool.poetry.dependencies]
 python = "^3.8"
 pandas = "~1.4.1"

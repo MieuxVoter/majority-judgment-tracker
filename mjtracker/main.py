@@ -30,8 +30,8 @@ class Arguments(tap.Tap):
     html: bool = False
     png: bool = True
     json: bool = False
-    csv: Path = Path("presidentielle_jm.csv")
-    dest: Path = Path("trackerapp/data/graphs/")
+    csv: Path = Path("../presidentielle_jm.csv")
+    dest: Path = Path("../trackerapp/data/graphs/")
 
 
 def main(args: Arguments):

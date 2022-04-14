@@ -10,13 +10,20 @@ install: ## Installation of tools
 	cd trackerapp/ && npm install && cd ..
  
 png:  install ## Produce png images
-	poetry run python main.py --dest figs/ --png
+	poetry shell
+	cd mjtracker
+	python main.py --dest ../figs/ --png
+	cd ..
 
 app:  install ## Build the application
-	poetry run python main.py --dest trackerapp/data/graphs/ --json --merit_profiles --test
+	cd mjtracker
+	poetry run python main.py --dest ../trackerapp/data/graphs/ --json --merit_profiles --test
+	cd ..
 	cd trackerapp/ && npm run build && cd ..
 
 dev:  install ## Run the application on a development mode
-	poetry run python main.py --dest trackerapp/data/graphs/ --json --merit_profiles --test
+	cd mjtracker
+	poetry run python main.py --dest ../trackerapp/data/graphs/ --json --merit_profiles --test
+	cd ..
 	ls -l trackerapp/data/graphs/
 	cd trackerapp/ && npm run dev

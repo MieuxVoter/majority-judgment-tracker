@@ -175,7 +175,7 @@ def load_surveys(
         polling_organization = PollingOrganizations.ALL
 
     df_surveys = pd.read_csv(csv_file, na_filter=False)
-    df_standardisation = pd.read_csv("standardisation.csv", na_filter=False)
+    df_standardisation = pd.read_csv("../standardisation.csv", na_filter=False)
 
     if polling_organization != PollingOrganizations.ALL:
         df_surveys = df_surveys[df_surveys["nom_institut"] == polling_organization.value]
