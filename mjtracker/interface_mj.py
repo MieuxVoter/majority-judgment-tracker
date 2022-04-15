@@ -36,7 +36,7 @@ def apply_mj(
         print(survey)
         # only the chosen survey
         df_survey = df[df["id"] == survey].copy()
-        nb_grades = df_survey["nombre_mentions"].unique()[0]
+        nb_grades = int(df_survey["nombre_mentions"].unique()[0])
         cur_col_intentions = col_intentions[:nb_grades]
         df_with_rank = sort_candidates_mj(df_survey, nb_grades, col_rank, col_median_grade, cur_col_intentions)
         # refill the dataframe of surveys
