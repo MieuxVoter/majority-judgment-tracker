@@ -500,6 +500,8 @@ def plot_comparison_intention(
         title=dict(text=title, x=0.5, xanchor="center", y=0.95),
         width=1200,
         height=600,
+        legend=dict(
+            orientation="h", x=0.5, xanchor="center", font=dict(size=12)),
     )
     fig = _add_image_to_fig(fig, x=1.00, y=1.1, sizex=0.10, sizey=0.10, xanchor="right")
 
@@ -528,7 +530,7 @@ def plot_intention(
             line=dict(color=color, width=width),
             name=candidate,
             showlegend=False,
-            legendgroup=candidate,
+            legendgroup=None,
         ),
         row=row,
         col=col,
@@ -541,7 +543,7 @@ def plot_intention(
             mode="markers",
             name=candidate,
             marker=dict(color=color, opacity=opacity),
-            legendgroup=candidate,
+            legendgroup=None,
             showlegend=False,
             text=[f"{rank2str(rank)}"],
         ),
@@ -565,14 +567,14 @@ def plot_intention(
             hoverinfo="skip",
             showlegend=False,
             name=candidate,
-            legendgroup=candidate,
+            legendgroup=None,
             row=row,
             col=col,
         )
 
         xref = f"x{col}" if row is not None else None
         yref = f"y{row}" if row is not None else None
-        candidate = _extended_name_annotations(df, candidate=candidate, show_rank=True, show_intention=True)
+        candidate = _extended_name_annotations(df, candidate=candidate, show_rank=True, show_intention=True, breaks_in_names=True)
         fig["layout"]["annotations"] += (
             dict(
                 x=pd.to_datetime(df["fin_enquete"].iloc[-1:].tolist()[0]),
@@ -606,7 +608,7 @@ def plot_intention_data(
             marker=dict(color=color, opacity=opacity, size=2),
             name=candidate,
             showlegend=False,
-            legendgroup=candidate,
+            legendgroup=None,
         ),
         row=row,
         col=col,
