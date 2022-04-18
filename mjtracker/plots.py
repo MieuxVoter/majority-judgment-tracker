@@ -196,8 +196,8 @@ def ranking_plot(
                 mode="lines",
                 name=ii,
                 marker=dict(color=COLORS[ii]["couleur"]),
-                legendgroup=ii,
                 showlegend=False,
+                legendgroup=None,
             ),
             row=row,
             col=col,
@@ -211,7 +211,7 @@ def ranking_plot(
                 name=ii,
                 marker=dict(color=COLORS[ii]["couleur"]),
                 showlegend=False,
-                legendgroup=ii,
+                legendgroup=None,
             ),
             row=row,
             col=col,
@@ -224,8 +224,8 @@ def ranking_plot(
                 mode="markers",
                 name=ii,
                 marker=dict(color=COLORS[ii]["couleur"]),
-                legendgroup=ii,
                 showlegend=False,
+                legendgroup=None,
             ),
             row=row,
             col=col,
@@ -324,7 +324,7 @@ def ranking_plot(
 def comparison_ranking_plot(df, smp_data: SMPData, source: str = None, on_rolling_data: bool = False) -> go.Figure:
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0)
 
-    fig, annotations = ranking_plot(
+    fig = ranking_plot(
         df,
         source=None,
         sponsor=None,
