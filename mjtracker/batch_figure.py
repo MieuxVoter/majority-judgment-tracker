@@ -66,7 +66,7 @@ def batch_ranking(df, args, on_rolling_data: bool = False):
         sponsor = df_poll["commanditaire"].loc[first_idx] if poll != PollingOrganizations.ALL else None
 
         if args.ranking_plot:
-            fig, annotations = ranking_plot(
+            fig = ranking_plot(
                 df_poll,
                 source=source,
                 sponsor=sponsor,

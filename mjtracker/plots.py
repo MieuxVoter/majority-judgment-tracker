@@ -143,7 +143,6 @@ def ranking_plot(
     show_grade_area: bool = True,
     breaks_in_names: bool = True,
     fig: go.Figure = None,
-    annotations: dict = None,
     row=None,
     col=None,
 ) -> go.Figure:
@@ -188,7 +187,6 @@ def ranking_plot(
                     col=col,
                 )
 
-    annotations = [] if annotations is None else annotations
     for ii in get_candidates(df):
         temp_df = df[df["candidat"] == ii]
         fig.add_trace(
@@ -249,19 +247,18 @@ def ranking_plot(
 
         # first dot annotation
         if temp_df["fin_enquete"].iloc[-1] != temp_df["fin_enquete"].iloc[0]:
-            annotations.append(
+            fig["layout"]["annotations"] += (
                 dict(
                     x=temp_df["fin_enquete"].iloc[0],
                     y=temp_df["rang"].iloc[0],
                     xanchor="right",
                     xshift=-10,
-                    yanchor="middle",
                     text=f"{name_label}",
                     font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
                     showarrow=False,
                     xref=xref,
                     yref=yref,
-                )
+                ),
             )
 
         # Nice name label
@@ -277,7 +274,7 @@ def ranking_plot(
         # last dot annotation
         # only if the last dot is correspond to the last polls
         if df["fin_enquete"].max() == temp_df["fin_enquete"].iloc[-1]:
-            annotations.append(
+            fig["layout"]["annotations"] += (
                 dict(
                     x=temp_df["fin_enquete"].iloc[-1],
                     y=temp_df["rang"].iloc[-1],
@@ -291,11 +288,12 @@ def ranking_plot(
                     yref=yref,
                 ),
             )
+
     fig = _add_election_date(fig, y=0.25, xshift=10)
 
     fig.update_layout(
         yaxis=dict(autorange="reversed", tick0=1, dtick=1, visible=False),
-        annotations=annotations,
+        # annotations=annotations,
         plot_bgcolor="white",
         showlegend=True,
     )
@@ -320,7 +318,7 @@ def ranking_plot(
         autosize=True,
         legend=dict(orientation="h", xanchor="center", x=0.5, y=-0.05),  # 50 % of the figure width/
     )
-    return fig, annotations
+    return fig
 
 
 def comparison_ranking_plot(df, smp_data: SMPData, source: str = None, on_rolling_data: bool = False) -> go.Figure:
@@ -344,7 +342,7 @@ def comparison_ranking_plot(df, smp_data: SMPData, source: str = None, on_rollin
     df_smp = smp_data.get_ranks()
     df_smp = df_smp[df_smp["fin_enquete"] >= df["fin_enquete"].min()]
 
-    fig, annotations = ranking_plot(
+    fig = ranking_plot(
         df_smp,
         source=None,
         sponsor=None,
@@ -354,7 +352,6 @@ def comparison_ranking_plot(df, smp_data: SMPData, source: str = None, on_rollin
         show_grade_area=False,
         breaks_in_names=False,
         fig=fig,
-        annotations=annotations,
         row=2,
         col=1,
     )
