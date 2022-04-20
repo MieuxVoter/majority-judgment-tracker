@@ -15,6 +15,7 @@ from utils import (
 )
 from misc.enums import PollingOrganizations, AggregationMode
 from smp_data import SMPData
+from typing import Iterable
 
 
 def batch_merit_profile(df, args, auto_text: bool = False):
@@ -60,6 +61,9 @@ def batch_merit_profile(df, args, auto_text: bool = False):
 def batch_ranking(df, args, on_rolling_data: bool = False):
     for poll in PollingOrganizations:
         df_poll = df[df["nom_institut"] == poll.value].copy() if poll != PollingOrganizations.ALL else df.copy()
+        # continue only if the dataframe is not empty
+        if df_poll.empty:
+            continue
         first_idx = df_poll.first_valid_index()
         source = poll.value
         label = source if poll != PollingOrganizations.ALL else poll.name
@@ -94,6 +98,9 @@ def batch_comparison_ranking(df, smp_data: SMPData, args, on_rolling_data: bool 
 
 
 def batch_time_merit_profile(df, args, aggregation, polls: PollingOrganizations = PollingOrganizations):
+    # check if polls is iterable
+    if not isinstance(polls, Iterable):
+        polls = [polls]
     for poll in polls:
         if poll == PollingOrganizations.ALL and aggregation == AggregationMode.NO_AGGREGATION:
             continue
@@ -123,7 +130,10 @@ def batch_time_merit_profile(df, args, aggregation, polls: PollingOrganizations 
             export_fig(fig, args, filename)
 
 
-def batch_ranked_time_merit_profile(df, args, aggregation, polls: PollingOrganizations = PollingOrganizations):
+def batch_ranked_time_merit_profile(df, args, aggregation, polls: PollingOrganizations = PollingOrganizations, on_rolling_data: bool = False):
+    # check if polls is iterable
+    if not isinstance(polls, Iterable):
+        polls = [polls]
     for poll in polls:
         if poll == PollingOrganizations.ALL and aggregation == AggregationMode.NO_AGGREGATION:
             continue
@@ -133,12 +143,13 @@ def batch_ranked_time_merit_profile(df, args, aggregation, polls: PollingOrganiz
         label = source if poll != PollingOrganizations.ALL else poll.name
         sponsor = df_poll["commanditaire"].loc[first_idx] if poll != PollingOrganizations.ALL else None
         aggregation_label = f"_{aggregation.name}" if aggregation != AggregationMode.NO_AGGREGATION else ""
+        roll = "_roll" if on_rolling_data else ""
 
         if df_poll.empty:
             continue
         if args.ranked_time_merit_profile:
-            fig = plot_ranked_time_merit_profile(df_poll, source=source, sponsor=sponsor, show_no_opinion=True)
-            filename = f"ranked_time_merit_profile{aggregation_label}_{label}"
+            fig = plot_ranked_time_merit_profile(df_poll, source=source, sponsor=sponsor, show_no_opinion=True, on_rolling_data=on_rolling_data)
+            filename = f"ranked_time_merit_profile{aggregation_label}_{label}{roll}"
             print(filename)
             export_fig(fig, args, filename)
 

@@ -757,7 +757,7 @@ def plot_ranked_time_merit_profile(
     fig.update_layout(
         yaxis_range=(0, 100),
         width=1200,
-        height=900,
+        height=900 if n_rows > 1 else 450,
         legend_title_text="Mentions",
         autosize=True,
         legend=dict(orientation="h", xanchor="center", x=0.5, y=-0.05),  # 50 % of the figure width/
@@ -773,8 +773,9 @@ def plot_ranked_time_merit_profile(
     source_str = f"source: {source}" if source is not None else ""
     source_str += ", " if sponsor is not None else ""
     sponsor_str = f"commanditaire: {sponsor}" if sponsor is not None else ""
+    pop_str = " - population: " + str(df["population"].iloc[0]) if "population" in df.columns else ""
     title = (
-        f"<b>Classement des candidats au jugement majoritaire</b>"
+        f"<b>Classement des candidats au jugement majoritaire</b>{pop_str}"
         + f"<br><i>{source_str}{sponsor_str}, dernier sondage: {most_recent_date}.</i>"
     )
     fig.update_layout(title=title, title_x=0.5)
@@ -1019,9 +1020,11 @@ def _generate_windows_size(nb: int) -> tuple:
     -------
     The optimized number of rows and columns
     """
-
-    n_rows = int(round(np.sqrt(nb)))
-    return n_rows + 1 if n_rows * n_rows < nb else n_rows, n_rows
+    if nb > 2:
+        n_rows = int(round(np.sqrt(nb)))
+        return n_rows + 1 if n_rows * n_rows < nb else n_rows, n_rows
+    else:
+        return 1, 2
 
 
 def _add_election_date(fig: go.Figure, y: float = 34, xshift: float = 0, row: int = None, col: int = None):

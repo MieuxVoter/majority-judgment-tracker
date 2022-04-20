@@ -29,7 +29,7 @@ def remove_undecided(df_survey: DataFrame, df_undecided_grades: DataFrame):
         return the DataFrame df with the survey with reaffected no opinion to the other grades
     """
     # compute initial number of grades attributed to each candidates
-    cols = [f"intention_mention_{i + 1}" for i in range(df_survey["nombre_mentions"].iloc[0])]
+    cols = [f"intention_mention_{i + 1}" for i in range(int(df_survey["nombre_mentions"].iloc[0]))]
     tot = df_survey[cols].sum(axis=1).round(5).unique()
     if len(tot) != 1:
         id_survey = df_survey["id"][df_survey.first_valid_index()]
@@ -175,6 +175,11 @@ def load_surveys(
         polling_organization = PollingOrganizations.ALL
 
     df_surveys = pd.read_csv(csv_file, na_filter=False)
+    for i in range(7):
+        df_surveys[f"intention_mention_{i+1}"] = pd.to_numeric(df_surveys[f"intention_mention_{i+1}"])
+    # convert mention number to integer
+    df_surveys["nombre_mentions"] = pd.to_numeric(df_surveys["nombre_mentions"])
+
     df_standardisation = pd.read_csv("../standardisation.csv", na_filter=False)
 
     if polling_organization != PollingOrganizations.ALL:
@@ -211,6 +216,9 @@ def load_surveys(
         df_surveys = df_surveys[
             df_surveys["candidat"] != "Jean Lassalle"
         ]  # todo: remove candidates with only two dots instead.
+
+    if candidates == Candidacy.SECOND_ROUND:
+        df_surveys = df_surveys[df_surveys["second_tour"] == True]
 
     if aggregation != AggregationMode.NO_AGGREGATION:
 
