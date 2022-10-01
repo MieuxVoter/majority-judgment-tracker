@@ -11,7 +11,7 @@ from pandas import DataFrame
 import numpy as np
 
 from utils import get_list_survey, get_intentions_colheaders
-from misc.enums import Candidacy, AggregationMode, PollingOrganizations
+from misc.enums import Candidacy, AggregationMode, PollingOrganizations, UntilRound
 
 
 def remove_undecided(df_survey: DataFrame, df_undecided_grades: DataFrame):
@@ -144,6 +144,7 @@ def load_surveys(
     candidates: Candidacy = None,
     aggregation: AggregationMode = None,
     polling_organization: PollingOrganizations = None,
+    until_round: UntilRound = None,
     rolling_data: bool = False,
 ):
     """
@@ -161,6 +162,8 @@ def load_surveys(
         how to manage Aggregation of several grades
     polling_organization: PollingOrganizations
         select polling organization
+    until_round: UntilRound
+        select until which round we wante to load the data
     rolling_data: bool
         if rolling grade intentions over 14d to smooth the data
     Returns
@@ -219,6 +222,11 @@ def load_surveys(
 
     if candidates == Candidacy.SECOND_ROUND:
         df_surveys = df_surveys[df_surveys["second_tour"] == True]
+
+    if until_round is None:
+        until_round = UntilRound.SECOND
+    if until_round == UntilRound.FIRST:
+        df_surveys = df_surveys[df_surveys["fin_enquete"] < "2022-04-10"]
 
     if aggregation != AggregationMode.NO_AGGREGATION:
 

@@ -31,3 +31,12 @@ class PollingOrganizations(Enum):
     MIEUX_VOTER = "Opinion Way"
     ELABE = "ELABE"
     IFOP = "IFOP"
+
+
+class UntilRound(Enum):
+    """
+    Select which round
+    """
+
+    FIRST = "first"
+    SECOND = "second"
