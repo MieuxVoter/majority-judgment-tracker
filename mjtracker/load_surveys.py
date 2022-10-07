@@ -225,8 +225,7 @@ def load_surveys(
 
     if until_round is None:
         until_round = UntilRound.SECOND
-    if until_round == UntilRound.FIRST:
-        df_surveys = df_surveys[df_surveys["fin_enquete"] < "2022-04-10"]
+    df_surveys = df_surveys[df_surveys["fin_enquete"] < until_round.value]
 
     if aggregation != AggregationMode.NO_AGGREGATION:
 

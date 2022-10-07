@@ -38,5 +38,5 @@ class UntilRound(Enum):
     Select which round
     """
 
-    FIRST = "first"
-    SECOND = "second"
+    FIRST = "2022-04-10"
+    SECOND = "2022-04-24"
