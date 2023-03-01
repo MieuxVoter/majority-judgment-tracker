@@ -132,6 +132,188 @@ def plot_merit_profiles(
     return fig
 
 
+def plot_animated_merit_profile(df: DataFrame,
+    grades: list,
+    font_size: int = 20,
+    date: str = None,
+    sponsor: str = None,
+    source: str = None,
+    show_no_opinion: bool = True,
+) -> go.Figure:
+    """
+    This function creates an animated plot of the merit profile.
+    It successively plots the scores for each grade for each candidates.
+    First it plots the scores for the first grade, with ordered candidates.
+    Then it plots the scores for the second grade, with re-ordered candidates in function of the total score, etc...
+
+    Parameters
+    ----------
+    df : DataFrame
+        The dataframe containing the data to plot.
+    grades : list
+        The list of grades to plot.
+    font_size : int, optional
+        The font size, by default 20
+    date : str, optional
+        The date of the data, by default None
+    sponsor : str, optional
+        The sponsor of the data, by default None
+    source : str, optional
+        The source of the data, by default None
+    show_no_opinion : bool, optional
+        If True, the no opinion data is plotted, by default True
+
+    Returns
+    -------
+    go.Figure
+        The figure.
+    """
+    df = df.copy()
+    nb_grades = len(grades)
+    grades = get_intentions_colheaders(df, nb_grades)
+
+    # ANIMATION DATAFRAME
+    df_animation = df.copy()
+    # add a column animation_sequence 0 for all rows
+    df_animation["animation_sequence"] = 0
+    # set to zero all grades except the first one
+    for grade in grades[1:]:
+        df_animation[grade] = 0
+
+    # duplicate concatenate the dataframe 7 times with animation_sequence 1 to 6
+    for i in range(1, len(grades) + 1):
+        df_temp = df.copy()
+        df_temp["animation_sequence"] = i
+        # set to zero all grades except to the i-th one
+        if i + 1 < len(grades):
+            for grade in grades[i+1:]:
+                df_temp[grade] = 0
+        # concatenate the dataframe
+        df_animation = pd.concat([df_animation, df_temp])
+
+
+
+    # compute the list sorted of candidat names to order y axis.
+    candidat_list = list(df["candidat"])
+    rank_list = list(df["rang"] - 1)
+    sorted_candidat_list = [i[1] for i in sorted(zip(rank_list, candidat_list))]
+    r_sorted_candidat_list = sorted_candidat_list.copy()
+    r_sorted_candidat_list.reverse()
+
+    colors = color_palette(palette="coolwarm", n_colors=nb_grades)
+    color_dict = {f"intention_mention_{i + 1}": f"rgb{str(colors[i])}" for i in range(nb_grades)}
+
+
+    # build the dataframe for the animation
+    fig = px.bar(
+        df_animation,
+        x=grades,
+        y="candidat",
+        orientation="h",
+        color_discrete_map=color_dict,
+        animation_frame="animation_sequence",
+        animation_group="candidat",
+    )
+
+    # animate smooth transition of 0.5 seconds
+    fig.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 500
+    # wait 0.5 before going to the next frame
+    fig.layout.updatemenus[0].buttons[0].args[1]["transition"]["duration"] = 500
+
+    fig.update_traces(textfont_size=font_size, textangle=0, textposition="auto", cliponaxis=False, width=0.5)
+
+    # replace variable names with grades
+    new_names = {f"intention_mention_{i + 1}": grades[i] for i in range(nb_grades)}
+    fig.for_each_trace(
+        lambda t: t.update(
+            name=new_names[t.name],
+            legendgroup=new_names[t.name],
+            hovertemplate=t.hovertemplate.replace(t.name, new_names[t.name]),
+        )
+    )
+
+    # vertical line
+    fig.add_vline(x=50, line_width=2, line_color="black")
+
+    # Legend
+    fig.update_layout(
+        legend_title_text=None,
+        autosize=True,
+        legend=dict(orientation="h", xanchor="center", x=0.5, y=-0.05),  # 50 % of the figure width
+    )
+
+    fig.update(data=[{"hovertemplate": "Intention: %{x}<br>Candidat: %{y}"}])
+    # todo: need to plot grades in hovertemplate.
+
+    # no back ground
+    fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+
+    # xticks and y ticks
+    # Add sans opinion to y tick label # todo : it may be simplified !
+    if show_no_opinion and not np.isnan(df["sans_opinion"].unique()[0]):
+        df["candidat_sans_opinion"] = None
+        for ii, cell in enumerate(df["candidat"]):
+            df["candidat_sans_opinion"].iat[ii] = (
+                    "<b>" + cell + "</b>" + "     <br><i>(sans opinion " + str(
+                df["sans_opinion"].iloc[ii]) + "%)</i>     "
+            )
+        # compute the list sorted of candidat names to order y axis.
+        candidat_list = list(df["candidat_sans_opinion"])
+        rank_list = list(df["rang"] - 1)
+        sorted_candidat_list = [i[1] for i in sorted(zip(rank_list, candidat_list))]
+        r_sorted_candidat_no_opinion_list = sorted_candidat_list.copy()
+        r_sorted_candidat_no_opinion_list.reverse()
+        yticktext = r_sorted_candidat_no_opinion_list
+    else:
+        yticktext = ["<b>" + s + "</b>" + "     " for s in r_sorted_candidat_list]
+
+    # xticks and y ticks
+    fig.update_layout(
+        xaxis=dict(
+            range=[0, 100],
+            tickmode="array",
+            tickvals=[0, 20, 40, 60, 80, 100],
+            ticktext=["0%", "20%", "40%", "60%", "80%", "100%"],
+            tickfont_size=font_size,
+            title="",  # intentions
+        ),
+        yaxis=dict(
+            tickfont_size=font_size * 0.75,
+            title="",  # candidat
+            automargin=True,
+            ticklabelposition="outside left",
+            ticksuffix="   ",
+            tickmode="array",
+            tickvals=[i for i in range(len(df))],
+            ticktext=yticktext,
+            categoryorder="array",
+            categoryarray=r_sorted_candidat_list,
+        ),  # space
+    )
+
+    # Title and detailed
+
+    date_str = f"date: {date}, " if date is not None else ""
+    source_str = f"source: {source}" if source is not None else ""
+    source_str += ", " if sponsor is not None else ""
+    sponsor_str = f"commanditaire: {sponsor}" if sponsor is not None else ""
+    title = "<b>Evaluation au jugement majoritaire</b> <br>" + f"<i>{date_str}{source_str}{sponsor_str}</i>"
+    fig.update_layout(title=title, title_x=0.5)
+
+    # font family
+    fig.update_layout(font_family="arial")
+
+    fig = _add_image_to_fig(fig, x=0.9, y=1.01, sizex=0.15, sizey=0.15)
+
+    # size of the figure
+    fig.update_layout(width=1000, height=600)
+
+    return fig
+
+
+
+
+
 def ranking_plot(
     df,
     on_rolling_data: bool = False,
@@ -143,7 +325,6 @@ def ranking_plot(
     show_grade_area: bool = True,
     breaks_in_names: bool = True,
     fig: go.Figure = None,
-    annotations: dict = None,
     row=None,
     col=None,
 ) -> go.Figure:
@@ -188,7 +369,6 @@ def ranking_plot(
                     col=col,
                 )
 
-    annotations = [] if annotations is None else annotations
     for ii in get_candidates(df):
         temp_df = df[df["candidat"] == ii]
         fig.add_trace(
@@ -198,8 +378,8 @@ def ranking_plot(
                 mode="lines",
                 name=ii,
                 marker=dict(color=COLORS[ii]["couleur"]),
-                legendgroup=ii,
                 showlegend=False,
+                legendgroup=None,
             ),
             row=row,
             col=col,
@@ -213,7 +393,7 @@ def ranking_plot(
                 name=ii,
                 marker=dict(color=COLORS[ii]["couleur"]),
                 showlegend=False,
-                legendgroup=ii,
+                legendgroup=None,
             ),
             row=row,
             col=col,
@@ -226,8 +406,8 @@ def ranking_plot(
                 mode="markers",
                 name=ii,
                 marker=dict(color=COLORS[ii]["couleur"]),
-                legendgroup=ii,
                 showlegend=False,
+                legendgroup=None,
             ),
             row=row,
             col=col,
@@ -249,19 +429,18 @@ def ranking_plot(
 
         # first dot annotation
         if temp_df["fin_enquete"].iloc[-1] != temp_df["fin_enquete"].iloc[0]:
-            annotations.append(
+            fig["layout"]["annotations"] += (
                 dict(
                     x=temp_df["fin_enquete"].iloc[0],
                     y=temp_df["rang"].iloc[0],
                     xanchor="right",
                     xshift=-10,
-                    yanchor="middle",
                     text=f"{name_label}",
                     font=dict(family="Arial", size=size_annotations, color=COLORS[ii]["couleur"]),
                     showarrow=False,
                     xref=xref,
                     yref=yref,
-                )
+                ),
             )
 
         # Nice name label
@@ -277,7 +456,7 @@ def ranking_plot(
         # last dot annotation
         # only if the last dot is correspond to the last polls
         if df["fin_enquete"].max() == temp_df["fin_enquete"].iloc[-1]:
-            annotations.append(
+            fig["layout"]["annotations"] += (
                 dict(
                     x=temp_df["fin_enquete"].iloc[-1],
                     y=temp_df["rang"].iloc[-1],
@@ -291,11 +470,12 @@ def ranking_plot(
                     yref=yref,
                 ),
             )
+
     fig = _add_election_date(fig, y=0.25, xshift=10)
 
     fig.update_layout(
         yaxis=dict(autorange="reversed", tick0=1, dtick=1, visible=False),
-        annotations=annotations,
+        # annotations=annotations,
         plot_bgcolor="white",
         showlegend=True,
     )
@@ -320,13 +500,13 @@ def ranking_plot(
         autosize=True,
         legend=dict(orientation="h", xanchor="center", x=0.5, y=-0.05),  # 50 % of the figure width/
     )
-    return fig, annotations
+    return fig
 
 
 def comparison_ranking_plot(df, smp_data: SMPData, source: str = None, on_rolling_data: bool = False) -> go.Figure:
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True, vertical_spacing=0)
 
-    fig, annotations = ranking_plot(
+    fig = ranking_plot(
         df,
         source=None,
         sponsor=None,
@@ -344,7 +524,7 @@ def comparison_ranking_plot(df, smp_data: SMPData, source: str = None, on_rollin
     df_smp = smp_data.get_ranks()
     df_smp = df_smp[df_smp["fin_enquete"] >= df["fin_enquete"].min()]
 
-    fig, annotations = ranking_plot(
+    fig = ranking_plot(
         df_smp,
         source=None,
         sponsor=None,
@@ -354,7 +534,6 @@ def comparison_ranking_plot(df, smp_data: SMPData, source: str = None, on_rollin
         show_grade_area=False,
         breaks_in_names=False,
         fig=fig,
-        annotations=annotations,
         row=2,
         col=1,
     )
@@ -500,6 +679,8 @@ def plot_comparison_intention(
         title=dict(text=title, x=0.5, xanchor="center", y=0.95),
         width=1200,
         height=600,
+        legend=dict(
+            orientation="h", x=0.5, xanchor="center", font=dict(size=12)),
     )
     fig = _add_image_to_fig(fig, x=1.00, y=1.1, sizex=0.10, sizey=0.10, xanchor="right")
 
@@ -528,7 +709,7 @@ def plot_intention(
             line=dict(color=color, width=width),
             name=candidate,
             showlegend=False,
-            legendgroup=candidate,
+            legendgroup=None,
         ),
         row=row,
         col=col,
@@ -541,7 +722,7 @@ def plot_intention(
             mode="markers",
             name=candidate,
             marker=dict(color=color, opacity=opacity),
-            legendgroup=candidate,
+            legendgroup=None,
             showlegend=False,
             text=[f"{rank2str(rank)}"],
         ),
@@ -565,14 +746,14 @@ def plot_intention(
             hoverinfo="skip",
             showlegend=False,
             name=candidate,
-            legendgroup=candidate,
+            legendgroup=None,
             row=row,
             col=col,
         )
 
         xref = f"x{col}" if row is not None else None
         yref = f"y{row}" if row is not None else None
-        candidate = _extended_name_annotations(df, candidate=candidate, show_rank=True, show_intention=True)
+        candidate = _extended_name_annotations(df, candidate=candidate, show_rank=True, show_intention=True, breaks_in_names=True)
         fig["layout"]["annotations"] += (
             dict(
                 x=pd.to_datetime(df["fin_enquete"].iloc[-1:].tolist()[0]),
@@ -606,7 +787,7 @@ def plot_intention_data(
             marker=dict(color=color, opacity=opacity, size=2),
             name=candidate,
             showlegend=False,
-            legendgroup=candidate,
+            legendgroup=None,
         ),
         row=row,
         col=col,
@@ -720,7 +901,7 @@ def plot_ranked_time_merit_profile(
     # Candidat list sorted the rank in the last poll
     most_recent_date = df["fin_enquete"].max()
     temp_df = df[df["fin_enquete"] == most_recent_date]
-    temp_df = temp_df.sort_values(by="rang")
+    temp_df = temp_df.sort_values(by="rang_glissant" if on_rolling_data else "rang")
     candidates = get_candidates(temp_df)
     titles_candidates = [f"{c} {rank2str(i+1)}" for i, c in enumerate(candidates)]
 
@@ -758,7 +939,7 @@ def plot_ranked_time_merit_profile(
     fig.update_layout(
         yaxis_range=(0, 100),
         width=1200,
-        height=900,
+        height=900 if n_rows > 1 else 450,
         legend_title_text="Mentions",
         autosize=True,
         legend=dict(orientation="h", xanchor="center", x=0.5, y=-0.05),  # 50 % of the figure width/
@@ -774,8 +955,9 @@ def plot_ranked_time_merit_profile(
     source_str = f"source: {source}" if source is not None else ""
     source_str += ", " if sponsor is not None else ""
     sponsor_str = f"commanditaire: {sponsor}" if sponsor is not None else ""
+    pop_str = " - population: " + str(df["population"].iloc[0]) if "population" in df.columns else ""
     title = (
-        f"<b>Classement des candidats au jugement majoritaire</b>"
+        f"<b>Classement des candidats au jugement majoritaire</b>{pop_str}"
         + f"<br><i>{source_str}{sponsor_str}, dernier sondage: {most_recent_date}.</i>"
     )
     fig.update_layout(title=title, title_x=0.5)
@@ -1020,9 +1202,11 @@ def _generate_windows_size(nb: int) -> tuple:
     -------
     The optimized number of rows and columns
     """
-
-    n_rows = int(round(np.sqrt(nb)))
-    return n_rows + 1 if n_rows * n_rows < nb else n_rows, n_rows
+    if nb > 2:
+        n_rows = int(round(np.sqrt(nb)))
+        return n_rows + 1 if n_rows * n_rows < nb else n_rows, n_rows
+    else:
+        return 1, 2
 
 
 def _add_election_date(fig: go.Figure, y: float = 34, xshift: float = 0, row: int = None, col: int = None):

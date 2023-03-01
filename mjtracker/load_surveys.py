@@ -11,7 +11,7 @@ from pandas import DataFrame
 import numpy as np
 
 from utils import get_list_survey, get_intentions_colheaders
-from misc.enums import Candidacy, AggregationMode, PollingOrganizations
+from misc.enums import Candidacy, AggregationMode, PollingOrganizations, UntilRound
 
 
 def remove_undecided(df_survey: DataFrame, df_undecided_grades: DataFrame):
@@ -29,7 +29,7 @@ def remove_undecided(df_survey: DataFrame, df_undecided_grades: DataFrame):
         return the DataFrame df with the survey with reaffected no opinion to the other grades
     """
     # compute initial number of grades attributed to each candidates
-    cols = [f"intention_mention_{i + 1}" for i in range(df_survey["nombre_mentions"].iloc[0])]
+    cols = [f"intention_mention_{i + 1}" for i in range(int(df_survey["nombre_mentions"].iloc[0]))]
     tot = df_survey[cols].sum(axis=1).round(5).unique()
     if len(tot) != 1:
         id_survey = df_survey["id"][df_survey.first_valid_index()]
@@ -144,6 +144,7 @@ def load_surveys(
     candidates: Candidacy = None,
     aggregation: AggregationMode = None,
     polling_organization: PollingOrganizations = None,
+    until_round: UntilRound = None,
     rolling_data: bool = False,
 ):
     """
@@ -161,6 +162,8 @@ def load_surveys(
         how to manage Aggregation of several grades
     polling_organization: PollingOrganizations
         select polling organization
+    until_round: UntilRound
+        select until which round we wante to load the data
     rolling_data: bool
         if rolling grade intentions over 14d to smooth the data
     Returns
@@ -175,6 +178,11 @@ def load_surveys(
         polling_organization = PollingOrganizations.ALL
 
     df_surveys = pd.read_csv(csv_file, na_filter=False)
+    for i in range(7):
+        df_surveys[f"intention_mention_{i+1}"] = pd.to_numeric(df_surveys[f"intention_mention_{i+1}"])
+    # convert mention number to integer
+    df_surveys["nombre_mentions"] = pd.to_numeric(df_surveys["nombre_mentions"])
+
     df_standardisation = pd.read_csv("../standardisation.csv", na_filter=False)
 
     if polling_organization != PollingOrganizations.ALL:
@@ -211,6 +219,13 @@ def load_surveys(
         df_surveys = df_surveys[
             df_surveys["candidat"] != "Jean Lassalle"
         ]  # todo: remove candidates with only two dots instead.
+
+    if candidates == Candidacy.SECOND_ROUND:
+        df_surveys = df_surveys[df_surveys["second_tour"] == True]
+
+    if until_round is None:
+        until_round = UntilRound.SECOND
+    df_surveys = df_surveys[df_surveys["fin_enquete"] < until_round.value]
 
     if aggregation != AggregationMode.NO_AGGREGATION:
 

@@ -12,7 +12,7 @@ from batch_figure import (
 from interface_mj import apply_mj
 from load_surveys import load_surveys
 from smp_data import SMPData
-from misc.enums import Candidacy, AggregationMode, PollingOrganizations
+from misc.enums import Candidacy, AggregationMode, PollingOrganizations, UntilRound
 
 # todo: moyennes / ecart-type grades sur un profil de merite.
 # todo: video d'evolution du graphique (baromètre animé)
@@ -23,13 +23,13 @@ class Arguments(tap.Tap):
     comparison_ranking_plot: bool = False
     ranking_plot: bool = False
     time_merit_profile: bool = False
-    ranked_time_merit_profile: bool = False
-    comparison_intention: bool = True
+    ranked_time_merit_profile: bool = True
+    comparison_intention: bool = False
     test: bool = False
     show: bool = False
     html: bool = False
     png: bool = True
-    json: bool = False
+    json: bool = True
     csv: Path = Path("../presidentielle_jm.csv")
     dest: Path = Path("../trackerapp/data/graphs/")
 
@@ -43,6 +43,7 @@ def main(args: Arguments):
         candidates=Candidacy.ALL_CURRENT_CANDIDATES,
         aggregation=aggregation,
         polling_organization=PollingOrganizations.ALL,
+        until_round=UntilRound.FIRST,
         rolling_data=False,
     )
 
@@ -70,6 +71,7 @@ def main(args: Arguments):
             candidates=Candidacy.ALL_CURRENT_CANDIDATES_WITH_ENOUGH_DATA,
             aggregation=aggregation,
             polling_organization=PollingOrganizations.ALL,
+            until_round=UntilRound.FIRST,
             rolling_data=True,
         )
         df = apply_mj(df, rolling_mj=False)
@@ -77,6 +79,7 @@ def main(args: Arguments):
         batch_time_merit_profile_all(df, args, aggregation, on_rolling_data=False)
         batch_time_merit_profile_all(df, args, aggregation, on_rolling_data=True)
         batch_comparison_ranking(df, smp_data, args, on_rolling_data=True)
+        batch_ranked_time_merit_profile(df, args, aggregation, on_rolling_data=True)
 
 
 if __name__ == "__main__":
