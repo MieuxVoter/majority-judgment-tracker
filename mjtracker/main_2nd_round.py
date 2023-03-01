@@ -12,7 +12,7 @@ from batch_figure import (
 from interface_mj import apply_mj
 from load_surveys import load_surveys
 from smp_data import SMPData
-from misc.enums import Candidacy, AggregationMode, PollingOrganizations
+from misc.enums import Candidacy, AggregationMode, PollingOrganizations, UntilRound
 
 # todo: moyennes / ecart-type grades sur un profil de merite.
 # todo: video d'evolution du graphique (baromètre animé)

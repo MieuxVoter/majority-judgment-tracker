@@ -71,6 +71,7 @@ def main(args: Arguments):
             candidates=Candidacy.ALL_CURRENT_CANDIDATES_WITH_ENOUGH_DATA,
             aggregation=aggregation,
             polling_organization=PollingOrganizations.ALL,
+            until_round=UntilRound.FIRST,
             rolling_data=True,
         )
         df = apply_mj(df, rolling_mj=False)

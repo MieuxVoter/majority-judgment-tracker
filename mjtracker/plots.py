@@ -901,7 +901,7 @@ def plot_ranked_time_merit_profile(
     # Candidat list sorted the rank in the last poll
     most_recent_date = df["fin_enquete"].max()
     temp_df = df[df["fin_enquete"] == most_recent_date]
-    temp_df = temp_df.sort_values(by="rang")
+    temp_df = temp_df.sort_values(by="rang_glissant" if on_rolling_data else "rang")
     candidates = get_candidates(temp_df)
     titles_candidates = [f"{c} {rank2str(i+1)}" for i, c in enumerate(candidates)]
 
