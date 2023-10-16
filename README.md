@@ -2,31 +2,27 @@
 This repository is a simple tool for tracking the progress of opinion with majority-judgment.
 It provides elegant plots such as merit profiles, merit profile evolutions.
 
-The database is a simple .csv file which contains polls compatible with the majority judgment rules:
+The database is a simple .csv file that contains polls compatible with the majority judgment rules:
 `presidentielle_jm.csv`
 
-The number of grades depends of the survey (4,5,6). An AggregationMode Enum is provided to choose the aggregation mode.
+The number of grades depends on the survey (4,5,6). An AggregationMode Enum is provided to choose the aggregation mode.
 The mapping to a common system of grades is provided in the `standardisation.csv` file.
+
+The Majority Judgment Tracker provides a tool for monitoring changes in opinions via majority judgment. This system offers refined plots like merit profiles and merit profile evolutions, all stored in a basic .csv database compatible with majority judgment rules.
 
 # Analyse des résultats de l'élection présidentielle 2022
 
 
 ## Contexte
-Au cours des campagnes  présidentielles, de nombreux sondages sont commandités pour anticiper les résultats de l'élection présidentielle,
-et pour mesurer l'opinion des français. De plus, des outils sont mis à disposition pour agréger les résultats des différentes études (nsppolls.fr)
-et pour rendre une estimation plus fiable sur des intentions de votes des français au scrutin majoritaire (electracker.fr).
-Cependant, mieux voter défend la mise en place du jugement majoritaire, un mode de scrutin qui mesure mieux l'opinion
-des électeurs. Pour la première fois, des sondages au jugement majoritaire ont été commandés pendant cette dernière campagne présidentielle.
-Ils auront permis de mesurer l'évolution de l'opinion des Français grâce au jugement majoritaire.
+Pendant les campagnes présidentielles, de nombreux sondages sont réalisés pour anticiper les résultats de l'élection et sonder l'opinion des Français. Des outils tels que nsppolls.fr agrègent ces résultats pour fournir des estimations plus fiables des intentions de vote pour le scrutin majoritaire, comme le fait electracker.fr. Toutefois, Mieux Voter promeut l'utilisation du jugement majoritaire, une méthode de scrutin qui reflète davantage l'opinion des électeurs. Pour la première fois, des sondages utilisant cette méthode ont été réalisés durant cette campagne. Ces sondages ont permis d'évaluer l'évolution des opinions grâce à ce mode de scrutin.
 
-Nous présentons dans cet ici les outils qui ont été mis en place pour mesurer, visualiser et agréger des sondages au jugement majoritaire.
-Ces outils nous permettront d'avoir un regard critique sur le scrutin majoritaire classique.
+Dans cet article, nous présentons les outils développés pour mesurer, visualiser et agréger les résultats de ces sondages au jugement majoritaire. Ces instruments offrent une perspective critique sur le scrutin majoritaire traditionnel.
 
-## Le profil de merite
+## Le profil de mérite
 
 Il est une photographie de l’opinion à l’instant du sondage.
 Il permet de classer les candidats avec la meilleure mention majoritaire à la moins bonne mention majoritaire.
-On présente ci-dessous les profils de mérites des 3 sondages inédits au jugement majoritaire
+On présente ci-dessous les profils de mérite des 3 sondages inédits au jugement majoritaire
 qui ont consulté des panels représentatifs de Français sur l’élection présidentielle 2022.
 
 ![ow1](docs/20211208_1209_ow.png)
@@ -42,13 +38,13 @@ Les mentions majoritaires des candidats sont représentées par des aires de cou
 
 ![ranking plot](docs/ranking_plot_Opinion_Way.png)
 
-Grâce à ce graphique, nous sommes en mesure de constater les ascensions de Marine Le Pen et de Jean-Luc Mélenchon dans le classement.
-On constate aussi que Valérie Pécresse a perdu trois places deux places depuis le premier sondage.
+Ce graphique nous permet de constater les ascensions de Marine Le Pen et de Jean-Luc Mélenchon dans le classement.
+On constate aussi que Valérie Pécresse a perdu deux places depuis le premier sondage.
 
-### Le profil de merite temporel
+### Le profil de mérite temporel
 
 Lorsque le classement change, les proportions des mentions attribuées aux candidats varient d'un sondage à l'autre.
-Ce graphique permet de visualiser cette l'évolution du profil de mérite au cours du temps pour chaque candidat.
+Ce graphique permet de visualiser cette évolution du profil de mérite au cours du temps pour chaque candidat.
 
 ![ranked_time_plot](docs/ranked_time_merit_profile_Opinion_Way.png)
 
@@ -64,10 +60,9 @@ qu'il n'a que peu convaincu durant cette première partie de campagne.
 
 #### Marine Le Pen & Jean-Luc Mélenchon
 
-Le point commun des deux candidats est qu'ils ont effectués une progression forte dans le classement au jugement majoritaire majoritaire.
-Ces progression témoignent de campagnes qui ont réussi à convaincre.
-Marine Le Pen s'est classé 7e, 3e puis 2e. Son classement final au jugement majoritaire est pour la première fois
-le même qu'au scrutin majoritaire, cela confirme qu'elle a réussi à convaincre.
+Le point commun des deux candidats est qu'ils ont effectués une progression forte dans le classement au jugement majoritaire.
+Ces progressions témoignent de campagnes qui ont réussi à convaincre.
+Marine Le Pen s'est classé 7e, 3e puis 2e. Pour la première fois, son classement final au jugement majoritaire est le même qu'au scrutin majoritaire, confirmant qu'elle a réussi à convaincre.
 
 
 ![intentions_MLP_ow](docs/intention_Opinion_Way_Marine_Le_Pen.png)
@@ -81,7 +76,7 @@ Cette tendance dans les deux modes de scrutin confirme qu'il a réussi à convra
 
 Les intentions de votes de Fabien Roussel n'ont jamais dépassé les 5 % au scrutin majoritaire. Pourtant au jugement majoritaire,
 il s'est classé 4e, 5e et 5e. D'après les profils de mérite temporels, il a réussi à convaincre, en augmentant son pourcentage
-de mentions positives et en diminuant la part de mention négatives. Le jugement majoritaire mesurer le fait que
+de mentions positives et en diminuant la part de mention négatives. Le jugement majoritaire mesure le fait que
 Fabien Roussel est un candidat qui a réussi à séduire les électeurs chose qui n'est pas mesurable avec le scrutin uninominal.
 
 ![intentions_FR_ow](docs/intention_Opinion_Way_Fabien_Roussel.png)
@@ -130,8 +125,8 @@ Sur les profils de mérite temporels, on a représenté l'aire des sondés indé
 
 Ce sondage confirme l'augmentation de l'adhésion aux idées de la candidate Marine Le Pen. Elle était en progrès depuis Novembre.
 Fabien Roussel a constament réduit le pourcentage de personnes indécises à son égard et il a renforcé sa base d'ashésion.
-Il confirme qu'il a convaincu au cours de la campagne.
-Jean-Luc Mélencshon n'a pas assez progressé avec son sondage pour arriver dans le haut du classement.
+Cela confirme qu'il a convaincu au cours de la campagne.
+Jean-Luc Mélenchon n'a pas assez progressé avec son sondage pour arriver dans le haut du classement.
 Plus de 50% des sondés attribuent une mention négative à Eric Zemmour, le classant dernier à chaque sondage.
 La plupart des candidats ont convaincu au cours de la campagne, ou n'ont pas renforcé leur rejet.
 Grâce à ces sondages, on mesure que Anne Hidalgo et surtout Valérie Pécresse sont les seules candidates à avoir été dévaluées.
@@ -149,11 +144,11 @@ Yannick Jadot et Fabien Roussel jusqu'en Février. Il capture ici l'ascension de
 
 ![ranked_time_plot_IFOP](docs/ranked_time_merit_profile_IFOP.png)
 
-De la me manière que dans le sondage ELABE, Fabien Roussel a constament réduit le pourcentage de personnes indécises à son égard et il a renforcé sa base d'ashésion.
+De la même manière que dans le sondage ELABE, Fabien Roussel a constament réduit le pourcentage de personnes indécises à son égard et il a renforcé sa base d'ashésion.
 Il confirme qu'il a convaincu au cours de la campagne. Plus de 75% des sondés attribuent une mention négative ou très négative à Eric Zemmour, le classant dernier à chaque sondage.
 Jean-Luc Mélencshon a progressé avec son sondage pour arriver dans le haut du classement (3e).
 On mesure aussi que Anne Hidalgo et Valérie Pécresse sont les seules candidates à avoir été dévaluées. Cela confirme que le recul des intentions de votes au scrutin majoritaire uninominal
-est du à une dévaluation de la part des electeurs et ne vient pas du report des voix.
+est dû à une dévaluation de la part des electeurs et ne vient pas du report des voix.
 En revanche, ce sondage ne mesure pas autant la progression de Marine Le Pen que dans le sondage ELABE et Opinion Way.
 
 
@@ -180,7 +175,7 @@ Ci-dessous, on présente les mentions communes et leur correspondance dans chaqu
 | Négative    |  A rejeter |  Négative | très mauvaise opinion  |
 | Sans opinion | N.A. | Sans opinion | Ne se prononce pas, Ne la connaît pas suffisamment |
 
-Ces choix sont sont discutables, il sont néanmoins une première approche pour l'agrégation des sondages au jugement majoritaire
+Ces choix sont discutables, il sont néanmoins une première approche pour l'agrégation des sondages au jugement majoritaire
 qui mérite d'être explorée. On présente si desous un profil de mérite temporel pour Yannick Jadot en aggrégant les mentions et les sondages.
 On notera les oscillations pour chaque mentions, qui méritent d'être lissées et qui sont présenter dans la section suivante.
 
