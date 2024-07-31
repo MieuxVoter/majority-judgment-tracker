@@ -1,13 +1,41 @@
 from typing import List
+from operator import itemgetter
+
 import numpy as np
 from pandas import DataFrame
 from mjtracker.utils import get_grades, get_list_survey
-from mjtracker.libs.majority_judgment_2 import majority_judgment as mj
+from .libs.majority_judgment_2 import majority_judgment as mj
+# from .libs.majority_judgment import majority_judgment as mj
+
+
+def interface_to_official_lib(merit_profiles_dict: dict, reverse: bool):
+    """ source: https://github.com/MieuxVoter/majority-judgment-library-python/tree/main """
+    from majority_judgment import majority_judgment as mj
+    from majority_judgment import compute_majority_values
+    from majority_judgment import median_grade
+    official_merit_profiles_dict = dict()
+    for k, v in merit_profiles_dict.items():
+        official_merit_profiles_dict[k] = [[i] * x for i, x in enumerate(v)]
+        official_merit_profiles_dict[k] = [item for sublist in official_merit_profiles_dict[k] for item in sublist]
+
+    set_num_votes = {len(votes) for votes in official_merit_profiles_dict.values()}
+    if not len(set_num_votes) == 1:
+        raise NotImplementedError("Unbalanced grades have not been implemented yet.")
+
+    majority_values = {
+        candidate: list(compute_majority_values(votes, reverse))
+        for candidate, votes in merit_profiles_dict.items()
+    }
+
+    best_grades = {candidate: median_grade(np.cumsum(votes)/np.sum(votes)) for candidate, votes in majority_values.items() }
+
+    return mj(official_merit_profiles_dict, reverse=reverse), best_grades
 
 
 def apply_mj(
     df: DataFrame,
     rolling_mj: bool = False,
+    official_lib: bool = False,
 ):
     """
     Reindexing candidates in the dataFrame following majority judgment rules
@@ -18,6 +46,8 @@ def apply_mj(
         contains all the data of vote / survey
     rolling_mj: bool
         if we apply rolling majority judgment
+    official_lib: bool
+        if we use the official majority judgment lib from MieuxVoter
     Returns
     -------
     Return the DataFrame df with the rank within majority judgment rules for all studies
@@ -38,7 +68,14 @@ def apply_mj(
         df_survey = df[df["id"] == survey].copy()
         nb_grades = int(df_survey["nombre_mentions"].unique()[0])
         cur_col_intentions = col_intentions[:nb_grades]
-        df_with_rank = sort_candidates_mj(df_survey, nb_grades, col_rank, col_median_grade, cur_col_intentions)
+        df_with_rank = sort_candidates_mj(
+            df_survey,
+            nb_grades,
+            col_rank,
+            col_median_grade,
+            cur_col_intentions,
+            official_lib
+        )
         # refill the dataframe of surveys
         df[df["id"] == survey] = df_with_rank
 
@@ -51,6 +88,7 @@ def sort_candidates_mj(
     col_rank: str = None,
     col_median_grade: str = None,
     col_intentions: List[str] = None,
+    official_lib: bool = False,
 ):
     """
     Reindexing candidates in the dataFrame following majority judgment rules
@@ -67,6 +105,8 @@ def sort_candidates_mj(
         rank col to considered (ex: mention_majoritaire or mention_majoritaire_glissante)
     col_intentions: list[str]
         col of intentions to considered (ex: _roll or not)
+    official_lib: bool
+        if we use the official majority judgment lib from MieuxVoter
     Returns
     -------
     Return the DataFrame df sorted with the rank within majority judgment rules.
@@ -81,7 +121,13 @@ def sort_candidates_mj(
     colheader.extend(col_intentions)
     df_intentions = df[colheader]
     merit_profiles_dict = set_dictionary(df_intentions, nb_grades, nb_candidates)
-    ranking, best_grades = mj(merit_profiles_dict, reverse=True)
+    # ranking, best_grades = mj(merit_profiles_dict, reverse=True)
+
+    if official_lib:
+        ranking, best_grades = interface_to_official_lib(merit_profiles_dict, reverse=True)
+    else:
+        # for majority-judgment-tracker has I kept percentages instead of votes, this method is preferred
+        ranking, best_grades = mj(merit_profiles_dict, reverse=True)
 
     if col_rank not in df.columns:
         df[col_rank] = None
