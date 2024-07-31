@@ -6,16 +6,9 @@ Created on Sat Jan 15 23:34:39 2022
 @author: Rémy Poulain
 adapted by Pierre Puchaud 10 Fev 2022
 """
-
-import matplotlib.pyplot as plt
-import numpy as np
-import csv
-
-from matplotlib.lines import Line2D
-import matplotlib.patches as patches
-import os
-
 from typing import Dict, List, Union
+
+import numpy as np
 
 
 def majority_judgment(data: Dict[str, List[Union[int, float]]] = None, reverse: bool = False):
