@@ -36,6 +36,7 @@ def apply_mj(
     df: DataFrame,
     rolling_mj: bool = False,
     official_lib: bool = False,
+    reversed: bool = True,
 ):
     """
     Reindexing candidates in the dataFrame following majority judgment rules
@@ -74,7 +75,8 @@ def apply_mj(
             col_rank,
             col_median_grade,
             cur_col_intentions,
-            official_lib
+            official_lib,
+            reversed,
         )
         # refill the dataframe of surveys
         df[df["id"] == survey] = df_with_rank
@@ -89,6 +91,7 @@ def sort_candidates_mj(
     col_median_grade: str = None,
     col_intentions: List[str] = None,
     official_lib: bool = False,
+    reversed: bool = True,
 ):
     """
     Reindexing candidates in the dataFrame following majority judgment rules
@@ -124,10 +127,10 @@ def sort_candidates_mj(
     # ranking, best_grades = mj(merit_profiles_dict, reverse=True)
 
     if official_lib:
-        ranking, best_grades = interface_to_official_lib(merit_profiles_dict, reverse=True)
+        ranking, best_grades = interface_to_official_lib(merit_profiles_dict, reverse=reversed)
     else:
         # for majority-judgment-tracker has I kept percentages instead of votes, this method is preferred
-        ranking, best_grades = mj(merit_profiles_dict, reverse=True)
+        ranking, best_grades = mj(merit_profiles_dict, reverse=reversed)
 
     if col_rank not in df.columns:
         df[col_rank] = None
