@@ -22,12 +22,9 @@ def interface_to_official_lib(merit_profiles_dict: dict, reverse: bool):
     if not len(set_num_votes) == 1:
         raise NotImplementedError("Unbalanced grades have not been implemented yet.")
 
-    majority_values = {
-        candidate: list(compute_majority_values(votes, reverse))
-        for candidate, votes in merit_profiles_dict.items()
-    }
-
-    best_grades = {candidate: median_grade(np.cumsum(votes)/np.sum(votes)) for candidate, votes in majority_values.items() }
+    best_grades = {}
+    for candidate, votes in merit_profiles_dict.items():
+        best_grades[candidate] = median_grade(np.cumsum(votes)/np.sum(votes))
 
     return mj(official_merit_profiles_dict, reverse=reverse), best_grades
 
@@ -144,10 +141,13 @@ def sort_candidates_mj(
         df.iat[idx, col_rank] = ranking[c]
 
     grade_list = get_grades(df)
-    grade_list.reverse()
-    for c in best_grades:
+    if not reversed:
+        grade_list.reverse()
+
+    for c, val in best_grades.items():
+        print(c, grade_list[val])
         idx = np.where(df["candidat"] == c)[0][0]
-        df.iat[idx, col_best_grade] = grade_list[best_grades[c]]
+        df.iat[idx, col_best_grade] = grade_list[val]
 
     return df
 
